@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supply Chain Management — War Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0f1118;
+  --bg-secondary: #161922;
+  --bg-tertiary: #1c2030;
+  --bg-panel: #12141e;
+  --text-primary: #e8e6e1;
+  --text-secondary: #9b9a97;
+  --text-muted: #5c5b59;
+  --accent: #4fd1a0;
+  --accent-glow: rgba(79, 209, 160, 0.15);
+  --border: rgba(255,255,255,0.06);
+  --border-active: rgba(79, 209, 160, 0.3);
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --radius: 10px;
+  --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  --red: #e15759;
+  --yellow: #f28e2b;
+  --green: #4caf7a;
+  --blue: #5b8bd6;
+  --purple: #b07aa1;
+  --teal: #76b7b2;
+}
+body.light {
+  --bg-primary: #f5f2ed;
+  --bg-secondary: #ebe8e2;
+  --bg-tertiary: #e0ddd6;
+  --bg-panel: #faf8f5;
+  --text-primary: #1a1a1a;
+  --text-secondary: #5c5b59;
+  --text-muted: #9b9a97;
+  --accent: #2a9d6e;
+  --accent-glow: rgba(42, 157, 110, 0.1);
+  --border: rgba(0,0,0,0.08);
+  --border-active: rgba(42, 157, 110, 0.3);
+  --shadow: 0 8px 32px rgba(0,0,0,0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh; width: 100vw;
+  transition: background var(--transition), color var(--transition);
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0; opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999;
+}
+
+/* Header */
+.header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 24px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  transition: background var(--transition), border var(--transition);
+}
+.header-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900; font-size: 18px;
+  letter-spacing: -0.02em; white-space: nowrap;
+}
+.header-title span { color: var(--accent); }
+.header-sep { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border: 1px solid var(--border);
+  border-radius: 7px; background: var(--bg-tertiary);
+  color: var(--text-secondary); font-family: 'DM Sans', sans-serif;
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  white-space: nowrap; transition: all var(--transition);
+  text-decoration: none;
+}
+.btn:hover { border-color: var(--border-active); color: var(--text-primary); background: var(--accent-glow); }
+.btn svg { width: 14px; height: 14px; }
+.header-actions { display: flex; gap: 8px; margin-left: auto; align-items: center; }
+
+/* Sim controls in header */
+.sim-controls {
+  display: none; align-items: center; gap: 10px;
+  margin-left: 16px;
+}
+.sim-controls.active { display: flex; }
+.sim-day {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  color: var(--accent); font-weight: 600; min-width: 64px;
+}
+.speed-btn {
+  padding: 4px 10px; border: 1px solid var(--border);
+  border-radius: 5px; background: var(--bg-tertiary);
+  color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; cursor: pointer; transition: all 0.2s;
+}
+.speed-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.speed-btn:hover:not(.active) { border-color: var(--border-active); color: var(--text-primary); }
+.pause-btn {
+  width: 28px; height: 28px; border: 1px solid var(--border);
+  border-radius: 6px; background: var(--bg-tertiary);
+  color: var(--text-secondary); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; transition: all 0.2s;
+}
+.pause-btn:hover { border-color: var(--border-active); color: var(--text-primary); }
+
+/* War Room Layout */
+.warroom {
+  display: none; position: fixed;
+  top: 56px; left: 0; right: 0; bottom: 0;
+}
+.warroom.active { display: flex; }
+
+.warroom-sidebar {
+  width: 280px; height: 100%; overflow-y: auto;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  transition: background var(--transition), border var(--transition);
+}
+.warroom-map {
+  flex: 1; position: relative; overflow: hidden;
+  background: var(--bg-primary);
+}
+.warroom-map svg { width: 100%; height: 100%; }
+.warroom-dashboard {
+  width: 280px; height: 100%; overflow-y: auto;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  padding: 16px;
+  transition: background var(--transition), border var(--transition);
+}
+
+/* Sidebar panels */
+.sidebar-section {
+  padding: 16px; border-bottom: 1px solid var(--border);
+}
+.sidebar-section h3 {
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-muted);
+  margin-bottom: 10px; font-weight: 600;
+}
+
+/* Events */
+.event-card {
+  padding: 12px; border: 1px solid var(--border);
+  border-radius: 8px; margin-bottom: 8px;
+  transition: all 0.3s; cursor: default;
+}
+.event-card.info { border-left: 3px solid var(--blue); }
+.event-card.warning { border-left: 3px solid var(--yellow); }
+.event-card.critical { border-left: 3px solid var(--red); }
+.event-card .event-day {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--text-muted); margin-bottom: 4px;
+}
+.event-card .event-title {
+  font-size: 13px; font-weight: 600; color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.event-card .event-desc {
+  font-size: 11px; color: var(--text-secondary); line-height: 1.5;
+}
+
+/* Actions */
+.action-card {
+  padding: 10px 12px; border: 1px solid var(--border);
+  border-radius: 8px; margin-bottom: 8px;
+  cursor: pointer; transition: all 0.2s;
+}
+.action-card:hover { border-color: var(--accent); background: var(--accent-glow); }
+.action-card.selected { border-color: var(--accent); background: var(--accent-glow); }
+.action-card .action-label {
+  font-size: 13px; font-weight: 600; color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.action-card .action-desc {
+  font-size: 11px; color: var(--text-secondary); line-height: 1.4;
+}
+.action-card .action-concepts {
+  display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;
+}
+.concept-tag {
+  padding: 2px 8px; border-radius: 10px;
+  font-size: 9px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: var(--accent-glow); color: var(--accent);
+  border: 1px solid var(--border-active);
+}
+
+.action-confirm-btn {
+  width: 100%; padding: 10px; border: none; border-radius: 8px;
+  background: var(--accent); color: #fff;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; margin-top: 4px;
+}
+.action-confirm-btn:hover { filter: brightness(1.1); }
+.action-confirm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.waiting-msg {
+  text-align: center; padding: 20px;
+  font-size: 12px; color: var(--text-muted);
+  font-style: italic;
+}
+
+/* KPI Dashboard */
+.kpi-card {
+  padding: 12px; border: 1px solid var(--border);
+  border-radius: 8px; margin-bottom: 8px;
+}
+.kpi-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.kpi-label {
+  font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;
+}
+.kpi-value {
+  font-family: 'JetBrains Mono', monospace; font-size: 18px;
+  font-weight: 700; color: var(--text-primary);
+}
+.kpi-value.good { color: var(--green); }
+.kpi-value.warn { color: var(--yellow); }
+.kpi-value.bad { color: var(--red); }
+.kpi-bar {
+  width: 100%; height: 4px; border-radius: 2px;
+  background: var(--border); overflow: hidden;
+}
+.kpi-bar-fill {
+  height: 100%; border-radius: 2px;
+  transition: width 0.5s ease, background 0.3s;
+}
+.kpi-spark {
+  width: 100%; height: 24px; margin-top: 4px;
+}
+.kpi-spark polyline { fill: none; stroke-width: 1.5; }
+.kpi-spark .spark-area { stroke: none; }
+
+/* Concepts panel */
+.concept-list { display: flex; flex-direction: column; gap: 4px; }
+.concept-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px; border-radius: 6px;
+  font-size: 11px; color: var(--text-muted);
+  transition: all 0.3s;
+}
+.concept-item.active {
+  color: var(--accent); background: var(--accent-glow);
+  font-weight: 600;
+}
+.concept-item .concept-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-muted); flex-shrink: 0;
+  transition: background 0.3s;
+}
+.concept-item.active .concept-dot { background: var(--accent); }
+
+/* Map nodes */
+.map-grid {
+  position: absolute; inset: 0; opacity: 0.03;
+  background-image:
+    linear-gradient(var(--text-muted) 1px, transparent 1px),
+    linear-gradient(90deg, var(--text-muted) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.node-label {
+  font-family: 'DM Sans', sans-serif; font-size: 10px;
+  font-weight: 600; fill: var(--text-secondary);
+  text-anchor: middle; pointer-events: none;
+}
+.node-sublabel {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  fill: var(--text-muted); text-anchor: middle; pointer-events: none;
+}
+.node-icon {
+  font-size: 14px; text-anchor: middle;
+  dominant-baseline: central; pointer-events: none;
+}
+
+.route-line {
+  fill: none; stroke-width: 2; stroke-linecap: round;
+  transition: stroke 0.5s, stroke-opacity 0.5s;
+}
+.route-line.disrupted { stroke-dasharray: 6,4; }
+
+@keyframes flowDot {
+  to { stroke-dashoffset: -20; }
+}
+@keyframes nodePulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+@keyframes criticalPulse {
+  0%, 100% { r: 28; opacity: 0.15; }
+  50% { r: 36; opacity: 0.3; }
+}
+@keyframes packageMove {
+  from { offset-distance: 0%; }
+  to { offset-distance: 100%; }
+}
+
+.flowing-dot {
+  fill: var(--accent); opacity: 0.8;
+}
+
+/* Inventory bar on nodes */
+.inv-bar-bg { fill: var(--border); rx: 2; }
+.inv-bar-fill { rx: 2; transition: width 0.5s ease; }
+
+/* Scenario Select */
+.scenario-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: var(--bg-primary);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px;
+  transition: opacity 0.4s;
+}
+.scenario-overlay.hidden { display: none; }
+.scenario-overlay h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px; font-weight: 900;
+  margin-bottom: 8px;
+}
+.scenario-overlay h1 span { color: var(--accent); }
+.scenario-overlay .subtitle {
+  font-size: 14px; color: var(--text-secondary);
+  margin-bottom: 40px;
+}
+.scenario-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px; max-width: 960px; width: 100%;
+}
+.scenario-card {
+  padding: 20px; border: 1px solid var(--border);
+  border-radius: var(--radius); cursor: pointer;
+  transition: all 0.3s; position: relative;
+  overflow: hidden;
+}
+.scenario-card:hover {
+  border-color: var(--accent); transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.scenario-card .sc-difficulty {
+  font-size: 10px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.scenario-card .sc-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 700;
+  margin-bottom: 6px;
+}
+.scenario-card .sc-desc {
+  font-size: 12px; color: var(--text-secondary);
+  line-height: 1.5; margin-bottom: 12px;
+}
+.scenario-card .sc-concepts {
+  display: flex; flex-wrap: wrap; gap: 4px;
+}
+.scenario-card .sc-duration {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--text-muted);
+  position: absolute; top: 16px; right: 16px;
+}
+
+/* Debrief Overlay */
+.debrief-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: var(--bg-primary);
+  display: none; overflow-y: auto;
+  padding: 40px;
+}
+.debrief-overlay.active { display: block; }
+.debrief-content {
+  max-width: 700px; margin: 0 auto;
+}
+.debrief-header {
+  text-align: center; margin-bottom: 32px;
+}
+.debrief-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 900; margin-bottom: 8px;
+}
+.debrief-grade {
+  font-family: 'Playfair Display', serif;
+  font-size: 64px; font-weight: 900;
+  display: inline-block; margin: 16px 0;
+}
+.debrief-score {
+  font-size: 16px; color: var(--text-secondary);
+}
+.debrief-section {
+  margin-bottom: 24px;
+}
+.debrief-section h3 {
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-muted);
+  margin-bottom: 12px; font-weight: 600;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.debrief-kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 12px; margin-bottom: 8px;
+}
+.debrief-kpi {
+  padding: 12px; border: 1px solid var(--border);
+  border-radius: 8px; text-align: center;
+}
+.debrief-kpi .dk-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px; font-weight: 700;
+}
+.debrief-kpi .dk-label {
+  font-size: 10px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px;
+}
+.debrief-timeline { display: flex; flex-direction: column; gap: 12px; }
+.debrief-decision {
+  padding: 12px; border: 1px solid var(--border);
+  border-radius: 8px; display: flex; gap: 12px;
+}
+.debrief-decision .dd-day {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--accent); font-weight: 600;
+  min-width: 48px;
+}
+.debrief-decision .dd-text {
+  flex: 1; font-size: 12px; color: var(--text-secondary); line-height: 1.5;
+}
+.debrief-decision .dd-action {
+  font-weight: 600; color: var(--text-primary);
+}
+.debrief-concepts {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.debrief-concept {
+  padding: 4px 12px; border-radius: 12px;
+  font-size: 11px; font-weight: 500;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.debrief-concept.covered {
+  background: var(--accent-glow);
+  color: var(--accent);
+  border-color: var(--border-active);
+}
+.debrief-actions {
+  display: flex; gap: 12px; justify-content: center;
+  margin-top: 32px;
+}
+
+/* Briefing overlay */
+.briefing-overlay {
+  position: fixed; inset: 0; z-index: 150;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center;
+  padding: 40px;
+}
+.briefing-overlay.active { display: flex; }
+.briefing-card {
+  max-width: 520px; width: 100%;
+  padding: 32px; border-radius: var(--radius);
+  background: var(--bg-panel); border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.briefing-card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 700;
+  margin-bottom: 8px;
+}
+.briefing-card .brief-sub {
+  font-size: 12px; color: var(--accent); margin-bottom: 16px;
+}
+.briefing-card p {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.7; margin-bottom: 20px;
+}
+.briefing-card .brief-start {
+  width: 100%; padding: 12px; border: none; border-radius: 8px;
+  background: var(--accent); color: #fff;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.briefing-card .brief-start:hover { filter: brightness(1.1); }
+
+/* Scrollbar */
+.warroom-sidebar::-webkit-scrollbar, .warroom-dashboard::-webkit-scrollbar, .debrief-overlay::-webkit-scrollbar { width: 4px; }
+.warroom-sidebar::-webkit-scrollbar-track, .warroom-dashboard::-webkit-scrollbar-track, .debrief-overlay::-webkit-scrollbar-track { background: transparent; }
+.warroom-sidebar::-webkit-scrollbar-thumb, .warroom-dashboard::-webkit-scrollbar-thumb, .debrief-overlay::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .warroom-sidebar { width: 240px; }
+  .warroom-dashboard { width: 240px; }
+}
+@media (max-width: 900px) {
+  .warroom { flex-direction: column; }
+  .warroom-sidebar { width: 100%; height: auto; max-height: 200px; flex-direction: row; overflow-x: auto; }
+  .warroom-dashboard { width: 100%; height: auto; max-height: 200px; }
+  .warroom-map { min-height: 300px; }
+  .debrief-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body class="dark">
+
+<header class="header">
+  <div class="header-title">Supply Chain <span>War Room</span></div>
+  <div class="header-sep"></div>
+  <div class="sim-controls" id="simControls">
+    <span class="sim-day" id="simDay">Day 1</span>
+    <button class="pause-btn" id="pauseBtn" title="Pause/Resume">&#9646;&#9646;</button>
+    <button class="speed-btn active" data-speed="1">1x</button>
+    <button class="speed-btn" data-speed="2">2x</button>
+    <button class="speed-btn" data-speed="4">4x</button>
+  </div>
+  <div class="header-actions">
+    <a class="btn" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Tree View
+    </a>
+    <a class="btn" href="graph.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><circle cx="18" cy="6" r="3"/><path d="M6 9v6M9 6h6M9 18h6"/></svg>
+      Graph View
+    </a>
+    <div class="header-sep"></div>
+    <button class="btn" id="btnTheme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      <span id="themeLabel">Light</span>
+    </button>
+  </div>
+</header>
+
+<!-- Scenario Select -->
+<div class="scenario-overlay" id="scenarioOverlay">
+  <h1>Supply Chain <span>War Room</span></h1>
+  <p class="subtitle">Step into the command center. Make the calls. Live with the consequences.</p>
+  <div class="scenario-grid" id="scenarioGrid"></div>
+</div>
+
+<!-- Briefing -->
+<div class="briefing-overlay" id="briefingOverlay">
+  <div class="briefing-card" id="briefingCard"></div>
+</div>
+
+<!-- War Room -->
+<div class="warroom" id="warroom">
+  <aside class="warroom-sidebar" id="warsidebar">
+    <div class="sidebar-section" id="eventsSection">
+      <h3>Events</h3>
+      <div id="eventsList"></div>
+    </div>
+    <div class="sidebar-section" id="actionsSection" style="display:none">
+      <h3>Decision Required</h3>
+      <div id="actionsList"></div>
+      <button class="action-confirm-btn" id="confirmAction" disabled>Confirm Decision</button>
+    </div>
+  </aside>
+  <main class="warroom-map" id="warmapWrap">
+    <div class="map-grid"></div>
+    <svg id="mapSvg" viewBox="0 0 1000 500"></svg>
+  </main>
+  <aside class="warroom-dashboard" id="wardashboard">
+    <div id="kpiPanel"></div>
+    <div style="margin-top: 16px;">
+      <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;font-weight:600">Concepts Activated <span id="conceptCount" style="color:var(--accent)"></span></h3>
+      <div class="concept-list" id="conceptList"></div>
+    </div>
+  </aside>
+</div>
+
+<!-- Debrief -->
+<div class="debrief-overlay" id="debriefOverlay">
+  <div class="debrief-content" id="debriefContent"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+function h(tag, cls, children) {
+  var el = document.createElement(tag);
+  if (cls) el.className = cls;
+  if (typeof children === 'string') el.textContent = children;
+  else if (Array.isArray(children)) children.forEach(function(c) {
+    if (typeof c === 'string') el.appendChild(document.createTextNode(c));
+    else if (c) el.appendChild(c);
+  });
+  return el;
+}
+function svgEl(tag, attrs) {
+  var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  if (attrs) Object.keys(attrs).forEach(function(k) { el.setAttribute(k, attrs[k]); });
+  return el;
+}
+function clearEl(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function fmt$(n) { return '$' + (n >= 1000000 ? (n/1000000).toFixed(1) + 'M' : n >= 1000 ? (n/1000).toFixed(0) + 'K' : n.toFixed(0)); }
+function fmtPct(n) { return Math.round(n * 100) + '%'; }
+
+// ═══════════════════════════════════════════════════════════════
+// SCENARIO DATA
+// ═══════════════════════════════════════════════════════════════
+var SCENARIOS = [
+  {
+    id: 'shenzhen', name: 'The Shenzhen Shutdown',
+    subtitle: 'A typhoon threatens your primary supplier',
+    difficulty: 'Normal', duration: 35,
+    briefing: 'You are the VP of Supply Chain at TechFlow Electronics. Your primary component supplier in Shenzhen handles 70% of your inbound materials. Typhoon Haiwen is forming in the Pacific, and meteorologists project it will hit southeastern China within days. Your factories run lean. Your customers expect 98% on-time delivery. The clock is ticking.',
+    concepts: ['Supply Chain Risks', 'Risk Mitigation', 'Business Continuity Planning', 'Supply Chain Resilience', 'Strategic Sourcing', 'Safety Stock', 'Dual Sourcing', '3PL & 4PL'],
+    nodes: {
+      supplierA: { name: 'Shenzhen Electronics', capacity: 80, cost: 1.0, active: true },
+      supplierB: { name: 'Vietnam Parts Co.', capacity: 30, cost: 1.35, active: true },
+      factory: { name: 'Assembly Plant', capacity: 90, materials: 200, maxMaterials: 400 },
+      warehouseE: { name: 'East DC', inventory: 150, maxInv: 300 },
+      warehouseW: { name: 'West DC', inventory: 120, maxInv: 300 },
+      retailN: { name: 'North Region', demand: 25 },
+      retailS: { name: 'South Region', demand: 30 },
+      retailW: { name: 'West Region', demand: 20 }
+    },
+    events: [
+      { day: 5, id: 'typhoon_warning', title: 'Typhoon Haiwen Advisory', severity: 'warning',
+        description: 'Meteorologists tracking Typhoon Haiwen, projected to hit Shenzhen coast in 7-10 days. Category 3 winds expected.',
+        actions: [
+          { id: 'rush_stock', label: 'Rush Safety Stock Orders', desc: 'Double orders from both suppliers immediately. Higher cost now, buffer for later.', concepts: ['Risk Mitigation', 'Safety Stock'],
+            effects: { supplierACap: 140, supplierBCap: 60, costMult: 1.4, effectDuration: 7 } },
+          { id: 'activate_backup', label: 'Pre-qualify Emergency Supplier', desc: 'Begin onboarding a third supplier in Taiwan. Takes 10 days but provides insurance.', concepts: ['Strategic Sourcing', 'Supply Chain Resilience'],
+            effects: { unlockSupplierC: true, supplierCDelay: 10, cost: 15000 } },
+          { id: 'wait_monitor', label: 'Monitor & Wait', desc: 'Typhoons often change course. Continue normal operations and reassess in 3 days.', concepts: [],
+            effects: {} }
+        ]
+      },
+      { day: 12, id: 'typhoon_hits', title: 'Typhoon Haiwen Makes Landfall', severity: 'critical',
+        description: 'Direct hit on Shenzhen. Supplier A factory flooded, port closed. Zero shipments for at least 14 days. Supplier B unaffected but at capacity.',
+        autoEffects: { supplierAActive: false, supplierADownDays: 14 },
+        actions: [
+          { id: 'max_supplierB', label: 'Max Out Supplier B + Overtime', desc: 'Push Supplier B to 150% capacity with overtime premium. Expensive but keeps materials flowing.', concepts: ['Risk Mitigation', 'Supply Chain Resilience'],
+            effects: { supplierBCap: 55, costMult: 1.5, effectDuration: 14 } },
+          { id: 'hire_3pl', label: 'Engage Emergency 3PL', desc: 'Contract a third-party logistics provider to source materials from spot markets. Unpredictable quality.', concepts: ['3PL & 4PL', 'Risk Mitigation'],
+            effects: { emergencySupply: 30, costMult: 1.8, qualityRisk: true, effectDuration: 14 } },
+          { id: 'ration_output', label: 'Ration Production & Prioritize', desc: 'Reduce factory output by 40%. Prioritize high-value customers. Communicate delays.', concepts: ['Supply Chain Strategy', 'Business Continuity Planning'],
+            effects: { factoryCap: 55, demandMult: 0.85, effectDuration: 14 } }
+        ]
+      },
+      { day: 22, id: 'inventory_crisis', title: 'Inventory Running Critical', severity: 'critical',
+        description: 'East DC inventory below 20% capacity. Three major customers threatening to switch suppliers. Board wants answers.',
+        actions: [
+          { id: 'air_freight', label: 'Emergency Air Freight', desc: 'Air-ship components from any available global source. 5x normal transport cost but arrives in 3 days.', concepts: ['Transportation Modes', 'Risk Mitigation'],
+            effects: { emergencySupply: 60, cost: 45000, effectDuration: 5 } },
+          { id: 'customer_manage', label: 'Customer Communication Blitz', desc: 'CEO-level calls to top 10 customers. Offer future discounts for patience. Protect relationships.', concepts: ['Supply Chain Strategy', 'Business Continuity Planning'],
+            effects: { demandMult: 0.75, revenueProtect: 0.9, effectDuration: 10 } },
+          { id: 'partial_ship', label: 'Partial Fulfillment Strategy', desc: 'Ship 70% of each order immediately. Backorder the rest. Spread the pain evenly.', concepts: ['Inventory Optimization', 'Business Continuity Planning'],
+            effects: { fulfillRate: 0.7, demandMult: 0.95, effectDuration: 10 } }
+        ]
+      },
+      { day: 28, id: 'recovery_begins', title: 'Supplier A Resuming Operations', severity: 'info',
+        description: 'Shenzhen factory partially restored. Operating at 40% capacity, expected full recovery in 15 more days. Time to plan your long-term response.',
+        actions: [
+          { id: 'dual_source_permanent', label: 'Permanent Dual-Source Strategy', desc: 'Split future orders 50/50 between Shenzhen and a second supplier. Higher base cost, much lower risk.', concepts: ['Strategic Sourcing', 'Supply Chain Resilience', 'Risk Mitigation'],
+            effects: { supplierACap: 50, supplierBCap: 45, costMult: 1.15, riskReduction: true } },
+          { id: 'back_to_normal', label: 'Restore Original Setup', desc: 'Return to pre-crisis supplier mix once Shenzhen is fully operational. Lowest cost, but same risk profile.', concepts: [],
+            effects: { supplierACap: 80, supplierBCap: 30, costMult: 1.0 } },
+          { id: 'nearshore', label: 'Nearshore New Supplier', desc: 'Begin 6-month qualification of a domestic supplier. Highest long-term cost but eliminates transoceanic risk.', concepts: ['Reshoring & Nearshoring', 'Supply Chain Resilience'],
+            effects: { supplierACap: 60, supplierBCap: 35, costMult: 1.1, riskReduction: true } }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'viral', name: 'Viral Demand',
+    subtitle: 'A social media explosion overwhelms your supply chain',
+    difficulty: 'Normal', duration: 30,
+    briefing: 'You manage supply chain operations at FreshGlow Cosmetics. A major influencer just posted an unsponsored rave review of your hero product to 12 million followers. Orders are spiking 800% in the last hour. Your warehouse has 2 weeks of normal inventory. Your single factory runs one shift. This is every brand\'s dream — and every supply chain manager\'s nightmare.',
+    concepts: ['Demand Forecasting', 'Capacity Planning', 'Inventory Optimization', 'Bullwhip Effect', '3PL & 4PL', 'Production Strategies', 'Warehouse Management', 'Omnichannel Fulfillment'],
+    nodes: {
+      supplierA: { name: 'Raw Materials Co.', capacity: 60, cost: 1.0, active: true },
+      supplierB: { name: 'Packaging Supplier', capacity: 50, cost: 1.1, active: true },
+      factory: { name: 'Production Facility', capacity: 60, materials: 180, maxMaterials: 400 },
+      warehouseE: { name: 'East Fulfillment', inventory: 200, maxInv: 400 },
+      warehouseW: { name: 'West Fulfillment', inventory: 160, maxInv: 400 },
+      retailN: { name: 'Online Direct', demand: 20 },
+      retailS: { name: 'Retail Partners', demand: 25 },
+      retailW: { name: 'Wholesale', demand: 15 }
+    },
+    events: [
+      { day: 3, id: 'viral_spike', title: 'Demand Explosion', severity: 'critical',
+        description: 'Orders up 800% in 24 hours. Social media amplifying. Your e-commerce site is struggling. Current inventory will last 3 days at this rate.',
+        autoEffects: { demandMult: 4.0 },
+        actions: [
+          { id: 'add_shifts', label: 'Add Production Shifts', desc: 'Run factory 24/7 with overtime. Doubles output but costs 2.5x per unit in labor.', concepts: ['Capacity Planning', 'Production Strategies'],
+            effects: { factoryCap: 140, costMult: 1.8, effectDuration: 20 } },
+          { id: 'outsource_prod', label: 'Contract Manufacturer', desc: 'Engage a contract manufacturer. 10-day lead time to start, but adds 80 units/day capacity.', concepts: ['3PL & 4PL', 'Capacity Planning'],
+            effects: { extraCapDelay: 10, extraCap: 80, costMult: 1.5 } },
+          { id: 'limit_orders', label: 'Implement Purchase Limits', desc: 'Cap at 2 per customer. Reduces demand surge but may frustrate buyers and create FOMO.', concepts: ['Demand Forecasting', 'Inventory Optimization'],
+            effects: { demandMult: 2.5, effectDuration: 20 } }
+        ]
+      },
+      { day: 8, id: 'bullwhip', title: 'Supplier Overwhelmed', severity: 'warning',
+        description: 'Your rush orders have panicked the raw materials supplier. They\'re quoting 3-week lead times and raised prices 30%. The bullwhip effect in action.',
+        actions: [
+          { id: 'negotiate_lock', label: 'Lock In Volume Commitment', desc: 'Guarantee 90-day purchase volumes in exchange for price stability and priority allocation.', concepts: ['Bullwhip Effect', 'Strategic Sourcing'],
+            effects: { supplierACap: 90, costMult: 1.15, effectDuration: 25 } },
+          { id: 'spot_buy', label: 'Spot Market Purchases', desc: 'Buy materials on the open market. Volatile pricing but immediate availability.', concepts: ['Bullwhip Effect', 'Risk Mitigation'],
+            effects: { emergencySupply: 40, costMult: 2.0, effectDuration: 10 } },
+          { id: 'smooth_orders', label: 'Demand Smoothing Strategy', desc: 'Place steady, predictable orders instead of reactive spikes. Slower ramp but prevents bullwhip amplification.', concepts: ['Bullwhip Effect', 'Demand Forecasting'],
+            effects: { supplierACap: 70, costMult: 1.1, effectDuration: 20 } }
+        ]
+      },
+      { day: 15, id: 'warehouse_crunch', title: 'Fulfillment Bottleneck', severity: 'warning',
+        description: 'Warehouse picking and packing can\'t keep up. 4,000 orders in backlog. Customer complaints rising on social media.',
+        actions: [
+          { id: 'temp_workers', label: 'Hire Temp Warehouse Staff', desc: 'Bring in 50 temp workers. 3-day training period, then doubles throughput. High error rate initially.', concepts: ['Warehouse Management', 'Capacity Planning'],
+            effects: { warehouseCap: 1.8, qualityRisk: true, cost: 25000, effectDuration: 15 } },
+          { id: 'drop_ship', label: 'Drop-Ship from Factory', desc: 'Ship directly from factory to customers, bypassing warehouse. Faster but higher shipping cost per unit.', concepts: ['Omnichannel Fulfillment', '3PL & 4PL'],
+            effects: { directFulfill: 40, costMult: 1.6, effectDuration: 15 } },
+          { id: 'wave_planning', label: 'Optimize Pick Waves', desc: 'Reorganize warehouse into optimized pick zones. Brief 1-day slowdown, then 40% efficiency gain.', concepts: ['Warehouse Management', 'Inventory Optimization'],
+            effects: { warehouseDown1Day: true, warehouseCap: 1.4, effectDuration: 15 } }
+        ]
+      },
+      { day: 23, id: 'demand_normalizing', title: 'Demand Plateauing', severity: 'info',
+        description: 'Viral wave subsiding. Demand stabilizing at 2.5x pre-viral levels. New baseline emerging. Time for a sustainable production strategy.',
+        actions: [
+          { id: 'new_baseline', label: 'Establish New Forecast Baseline', desc: 'Reset demand forecasts to new normal. Adjust safety stock, production schedules, and supplier contracts accordingly.', concepts: ['Demand Forecasting', 'S&OP Process'],
+            effects: { demandMult: 2.5, factoryCap: 100, costMult: 1.2 } },
+          { id: 'scale_back', label: 'Conservative Scale-Back', desc: 'Gradually reduce capacity additions. Risk understocking if demand holds, but protect margins.', concepts: ['Demand Forecasting', 'Capacity Planning'],
+            effects: { demandMult: 2.5, factoryCap: 80, costMult: 1.05 } },
+          { id: 'invest_capacity', label: 'Invest in Permanent Capacity', desc: 'Build out factory line 2 and expand warehouse. Major capex but positions for growth.', concepts: ['Capacity Planning', 'Supply Chain Strategy'],
+            effects: { factoryCap: 130, cost: 80000, costMult: 1.1 } }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ransomware', name: 'The Ransomware',
+    subtitle: 'Hackers just locked your entire ERP system',
+    difficulty: 'Hard', duration: 28,
+    briefing: 'It\'s Monday morning at GlobalFreight Logistics. Your IT team just discovered ransomware has encrypted your ERP system, warehouse management system, and transportation management system. The hackers are demanding $2 million in cryptocurrency. You have 72 hours before they threaten to leak customer data. Your 12 warehouses, 3,000 daily shipments, and 200 employees are effectively blind. No one knows what\'s in inventory, what\'s been ordered, or what\'s on the trucks.',
+    concepts: ['Cybersecurity in SCM', 'ERP Systems', 'Business Continuity Planning', 'Risk Mitigation', 'Warehouse Management', 'Supply Chain Risks', 'Robotic Process Automation', 'Supply Chain Resilience'],
+    nodes: {
+      supplierA: { name: 'Component Mfg A', capacity: 70, cost: 1.0, active: true },
+      supplierB: { name: 'Component Mfg B', capacity: 50, cost: 1.2, active: true },
+      factory: { name: 'Main Factory', capacity: 80, materials: 150, maxMaterials: 350 },
+      warehouseE: { name: 'DC Alpha', inventory: 180, maxInv: 350 },
+      warehouseW: { name: 'DC Beta', inventory: 140, maxInv: 350 },
+      retailN: { name: 'Enterprise Clients', demand: 30 },
+      retailS: { name: 'SMB Clients', demand: 25 },
+      retailW: { name: 'Government', demand: 20 }
+    },
+    events: [
+      { day: 1, id: 'ransomware_hit', title: 'Systems Encrypted', severity: 'critical',
+        description: 'All digital systems are locked. ERP, WMS, TMS — everything. Hackers demand $2M in 72 hours. Factory production halted. Warehouse workers standing idle.',
+        autoEffects: { factoryCap: 20, supplierACap: 0, supplierBCap: 0 },
+        actions: [
+          { id: 'pay_ransom', label: 'Pay the Ransom', desc: 'Pay $2M for the decryption key. Systems could be back in 24 hours. No guarantee hackers honor the deal.', concepts: ['Cybersecurity in SCM', 'Risk Mitigation'],
+            effects: { cost: 200000, systemsRestore: 2, restoreChance: 0.7 } },
+          { id: 'manual_ops', label: 'Go Manual + Rebuild', desc: 'Switch to paper-based operations. IT team begins clean rebuild from backups. Full restore in 10-14 days.', concepts: ['Business Continuity Planning', 'ERP Systems'],
+            effects: { factoryCap: 40, supplierACap: 30, supplierBCap: 20, effectDuration: 12 } },
+          { id: 'hybrid_approach', label: 'Parallel Track Strategy', desc: 'Negotiate with hackers to buy time while IT restores from backups. Run critical ops manually.', concepts: ['Business Continuity Planning', 'Cybersecurity in SCM', 'Risk Mitigation'],
+            effects: { factoryCap: 35, supplierACap: 25, supplierBCap: 15, systemsRestore: 8, effectDuration: 8 } }
+        ]
+      },
+      { day: 4, id: 'data_leak_threat', title: 'Data Leak Threat Escalates', severity: 'critical',
+        description: 'Hackers released sample customer data as proof. Media is picking up the story. Legal counsel says you must notify affected customers within 48 hours.',
+        actions: [
+          { id: 'transparent_notify', label: 'Full Transparency Disclosure', desc: 'Immediately notify all customers, offer credit monitoring, hold press conference. Expensive but ethical.', concepts: ['Supply Chain Risks', 'Regulatory Compliance'],
+            effects: { cost: 50000, demandMult: 0.85, reputationProtect: true, effectDuration: 20 } },
+          { id: 'targeted_notify', label: 'Targeted Notification Only', desc: 'Notify only confirmed affected customers as required by law. Minimize public exposure.', concepts: ['Regulatory Compliance', 'Risk Mitigation'],
+            effects: { cost: 15000, demandMult: 0.9, effectDuration: 15 } },
+          { id: 'delay_assess', label: 'Complete Assessment First', desc: 'Take 5 more days to fully assess the breach scope before notifications. Risk regulatory penalties.', concepts: ['Supply Chain Risks'],
+            effects: { demandMult: 0.95, regulatoryRisk: true, effectDuration: 20 } }
+        ]
+      },
+      { day: 10, id: 'systems_partial', title: 'Core Systems Partially Restored', severity: 'info',
+        description: 'IT has restored basic ERP functionality from backups. Inventory data is 10 days stale. WMS and TMS still offline. Manual processes continue for logistics.',
+        actions: [
+          { id: 'phased_restore', label: 'Phased System Rollout', desc: 'Bring systems online one at a time with security hardening. Slower but safer against re-infection.', concepts: ['ERP Systems', 'Cybersecurity in SCM'],
+            effects: { factoryCap: 60, supplierACap: 50, supplierBCap: 35, effectDuration: 10 } },
+          { id: 'full_restore', label: 'Rapid Full Restoration', desc: 'Bring everything online simultaneously. Faster recovery but higher risk of backdoors remaining.', concepts: ['ERP Systems', 'Supply Chain Resilience'],
+            effects: { factoryCap: 80, supplierACap: 70, supplierBCap: 50, riskMult: 1.3, effectDuration: 5 } },
+          { id: 'new_platform', label: 'Migrate to Cloud ERP', desc: 'Use this as catalyst to migrate to modern cloud ERP. 20-day transition but better long-term security.', concepts: ['ERP Systems', 'Cybersecurity in SCM', 'Supply Chain Resilience'],
+            effects: { factoryCap: 45, supplierACap: 35, supplierBCap: 25, effectDuration: 18, longTermBenefit: true } }
+        ]
+      },
+      { day: 20, id: 'aftermath', title: 'Recovery & Hardening', severity: 'info',
+        description: 'Operations at 80% of pre-attack levels. Board demands a post-incident review and cybersecurity investment plan.',
+        actions: [
+          { id: 'zero_trust', label: 'Zero Trust Architecture', desc: 'Implement zero-trust security across all supply chain systems. $500K investment, 6-month rollout.', concepts: ['Cybersecurity in SCM', 'Supply Chain Resilience'],
+            effects: { cost: 50000, riskReduction: true, factoryCap: 75 } },
+          { id: 'basic_security', label: 'Basic Security Upgrades', desc: 'Patch known vulnerabilities, add MFA, improve backups. Lower cost but incremental improvement.', concepts: ['Cybersecurity in SCM'],
+            effects: { cost: 15000, factoryCap: 80 } },
+          { id: 'insurance_transfer', label: 'Cyber Insurance + Upgrades', desc: 'Purchase comprehensive cyber insurance and implement moderate security improvements.', concepts: ['Risk Mitigation', 'Cybersecurity in SCM'],
+            effects: { cost: 30000, riskReduction: true, factoryCap: 78 } }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'green', name: 'Green Mandate',
+    subtitle: 'New regulations demand carbon-neutral operations in 90 days',
+    difficulty: 'Normal', duration: 32,
+    briefing: 'EcoTech Manufacturing just received notice: new EU regulations require documented carbon-neutral supply chain operations for continued market access. You have 90 days. Your supply chain currently produces 12,000 tons of CO2 annually. Your competitors are scrambling too. The regulations are real, the deadline is firm, and the EU market represents 40% of your revenue.',
+    concepts: ['Green Supply Chain', 'ESG Reporting', 'Sustainable Packaging', 'Circular Economy', 'Regulatory Compliance', 'Transportation Modes', 'Reverse Logistics', 'Social Responsibility'],
+    nodes: {
+      supplierA: { name: 'Materials (China)', capacity: 75, cost: 1.0, active: true },
+      supplierB: { name: 'Materials (Local)', capacity: 30, cost: 1.45, active: true },
+      factory: { name: 'Production HQ', capacity: 85, materials: 200, maxMaterials: 400 },
+      warehouseE: { name: 'EU Distribution', inventory: 170, maxInv: 350 },
+      warehouseW: { name: 'NA Distribution', inventory: 150, maxInv: 350 },
+      retailN: { name: 'EU Market', demand: 30 },
+      retailS: { name: 'NA Market', demand: 25 },
+      retailW: { name: 'APAC Market', demand: 20 }
+    },
+    events: [
+      { day: 3, id: 'carbon_audit', title: 'Carbon Audit Results', severity: 'warning',
+        description: 'Audit reveals 60% of emissions come from ocean freight and trucking, 25% from production, 15% from packaging. You need a plan now.',
+        actions: [
+          { id: 'green_logistics', label: 'Switch to Green Logistics', desc: 'Move to rail + electric last-mile where possible. 20% cost increase but 45% emissions reduction in transport.', concepts: ['Green Supply Chain', 'Transportation Modes'],
+            effects: { costMult: 1.2, emissionsReduction: 0.27, effectDuration: 30 } },
+          { id: 'local_source', label: 'Shift to Local Suppliers', desc: 'Increase local supplier share to 60%. Higher material cost but drastically shorter supply routes.', concepts: ['Reshoring & Nearshoring', 'Green Supply Chain'],
+            effects: { supplierACap: 40, supplierBCap: 55, costMult: 1.25, emissionsReduction: 0.35, effectDuration: 30 } },
+          { id: 'carbon_offsets', label: 'Carbon Offset Program', desc: 'Purchase verified carbon offsets while making gradual operational changes. Fast compliance, questioned legitimacy.', concepts: ['ESG Reporting', 'Green Supply Chain'],
+            effects: { cost: 40000, emissionsReduction: 0.5, effectDuration: 30, offsetRisk: true } }
+        ]
+      },
+      { day: 10, id: 'packaging_review', title: 'Packaging Sustainability Audit', severity: 'warning',
+        description: 'Current packaging is 80% virgin plastic. EU requires minimum 50% recycled content and full recyclability documentation.',
+        actions: [
+          { id: 'recycled_pack', label: 'Switch to Recycled Materials', desc: 'Redesign packaging with 70% recycled content. 2-week transition, 15% cost increase per unit.', concepts: ['Sustainable Packaging', 'Circular Economy'],
+            effects: { costMult: 1.15, emissionsReduction: 0.08, effectDuration: 25 } },
+          { id: 'minimal_pack', label: 'Minimalist Redesign', desc: 'Reduce packaging material by 40% with right-sizing algorithms. Lower cost AND lower emissions.', concepts: ['Sustainable Packaging', 'Inventory Optimization'],
+            effects: { costMult: 0.95, emissionsReduction: 0.06, effectDuration: 25 } },
+          { id: 'bio_pack', label: 'Biodegradable Innovation', desc: 'Switch to mushroom-based and seaweed packaging. Premium cost but strong marketing story and full compliance.', concepts: ['Sustainable Packaging', 'Circular Economy', 'Green Supply Chain'],
+            effects: { costMult: 1.35, emissionsReduction: 0.12, effectDuration: 25 } }
+        ]
+      },
+      { day: 18, id: 'supplier_compliance', title: 'Supplier ESG Non-Compliance', severity: 'critical',
+        description: 'EU regulators flag that your China-based supplier lacks required ESG documentation. Without it, their materials cannot enter the EU supply chain.',
+        actions: [
+          { id: 'supplier_dev', label: 'Supplier Development Program', desc: 'Send a team to help Supplier A achieve ESG certification. 15-day process, strengthens the relationship.', concepts: ['Social Responsibility', 'ESG Reporting', 'Supplier Relationship Management'],
+            effects: { supplierACap: 50, costMult: 1.1, effectDuration: 15 } },
+          { id: 'switch_supplier', label: 'Qualify ESG-Certified Supplier', desc: 'Replace non-compliant supplier with a pre-certified one. Higher cost, guaranteed compliance.', concepts: ['ESG Reporting', 'Strategic Sourcing'],
+            effects: { supplierACap: 55, costMult: 1.3, effectDuration: 15, complianceGuaranteed: true } },
+          { id: 'dual_track', label: 'Dual-Track Compliance', desc: 'Help current supplier while qualifying backup. Most expensive but lowest risk.', concepts: ['ESG Reporting', 'Risk Mitigation', 'Supply Chain Resilience'],
+            effects: { supplierACap: 45, supplierBCap: 40, costMult: 1.25, effectDuration: 15 } }
+        ]
+      },
+      { day: 27, id: 'final_audit', title: 'Pre-Certification Review', severity: 'info',
+        description: 'EU auditors arrive in 5 days for final certification review. Your current emissions profile and documentation will determine market access.',
+        actions: [
+          { id: 'full_commitment', label: 'Full Sustainability Overhaul', desc: 'Implement remaining changes. Accept higher costs for complete, genuine compliance. Long-term competitive advantage.', concepts: ['Green Supply Chain', 'ESG Reporting', 'Supply Chain Strategy'],
+            effects: { costMult: 1.2, emissionsReduction: 0.15, complianceGuaranteed: true } },
+          { id: 'strategic_compliance', label: 'Strategic Compliance Focus', desc: 'Focus documentation and changes on what auditors will check. Efficient use of resources.', concepts: ['Regulatory Compliance', 'ESG Reporting'],
+            effects: { costMult: 1.05, emissionsReduction: 0.05 } },
+          { id: 'transparency_report', label: 'Radical Transparency Report', desc: 'Publish a complete carbon roadmap with targets. Show progress trajectory, not just current state.', concepts: ['ESG Reporting', 'Social Responsibility', 'Green Supply Chain'],
+            effects: { cost: 10000, demandMult: 1.1, reputationProtect: true } }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'perfect_storm', name: 'The Perfect Storm',
+    subtitle: 'Everything goes wrong at once',
+    difficulty: 'Expert', duration: 35,
+    briefing: 'You\'re the Chief Supply Chain Officer at OmniCorp Industries. In the span of 72 hours: a key supplier declares bankruptcy, a cyberattack hits your logistics partner, a trade embargo disrupts 30% of your shipping routes, and demand spikes 200% due to competitor recall. Your board meets in 30 days to evaluate your leadership. Every decision matters. There are no easy answers.',
+    concepts: ['Supply Chain Risks', 'Risk Mitigation', 'Business Continuity Planning', 'Supply Chain Resilience', 'Cybersecurity in SCM', 'International Trade', 'Sanctions & Export Controls', 'Demand Forecasting', 'Strategic Sourcing', 'Supply Chain Strategy'],
+    nodes: {
+      supplierA: { name: 'Primary Supplier', capacity: 90, cost: 1.0, active: true },
+      supplierB: { name: 'Secondary Supplier', capacity: 40, cost: 1.3, active: true },
+      factory: { name: 'Main Factory', capacity: 100, materials: 250, maxMaterials: 500 },
+      warehouseE: { name: 'DC East', inventory: 200, maxInv: 400 },
+      warehouseW: { name: 'DC West', inventory: 180, maxInv: 400 },
+      retailN: { name: 'Domestic', demand: 35 },
+      retailS: { name: 'International', demand: 30 },
+      retailW: { name: 'E-Commerce', demand: 25 }
+    },
+    events: [
+      { day: 2, id: 'supplier_bankrupt', title: 'Supplier A Files for Bankruptcy', severity: 'critical',
+        description: 'Your primary supplier (60% of materials) has filed Chapter 11. Their factory continues at reduced capacity under court supervision, but future reliability is unknown.',
+        autoEffects: { supplierACap: 35 },
+        actions: [
+          { id: 'secure_inventory', label: 'Secure Remaining Inventory', desc: 'Legal team files priority claim on in-transit and warehoused materials. Costly legal battle but secures supply.', concepts: ['Risk Mitigation', 'Contract Management'],
+            effects: { emergencySupply: 50, cost: 30000, supplierACap: 35, effectDuration: 10 } },
+          { id: 'emergency_source', label: 'Emergency Multi-Source', desc: 'Activate every available alternative supplier simultaneously. Chaotic but fills the gap fast.', concepts: ['Strategic Sourcing', 'Supply Chain Resilience'],
+            effects: { supplierBCap: 70, costMult: 1.6, effectDuration: 15 } },
+          { id: 'reduce_sku', label: 'SKU Rationalization', desc: 'Temporarily discontinue low-margin products. Focus remaining supply on hero products.', concepts: ['Supply Chain Strategy', 'Inventory Optimization'],
+            effects: { demandMult: 0.7, factoryCap: 75, costMult: 0.9, effectDuration: 20 } }
+        ]
+      },
+      { day: 5, id: 'cyber_logistics', title: 'Logistics Partner Hit by Cyberattack', severity: 'critical',
+        description: 'Your primary 3PL\'s systems are down. 400 shipments in limbo — you don\'t know where they are. Deliveries halted across East Coast.',
+        autoEffects: { warehouseEFlow: 0.3 },
+        actions: [
+          { id: 'backup_3pl', label: 'Activate Backup 3PL', desc: 'Switch East Coast logistics to your secondary carrier. 5-day transition, higher rates.', concepts: ['3PL & 4PL', 'Business Continuity Planning'],
+            effects: { warehouseEFlow: 0.7, costMult: 1.4, effectDuration: 12 } },
+          { id: 'in_house_temp', label: 'Temporary In-House Logistics', desc: 'Rent trucks, hire temp drivers, manage logistics internally. Maximum control, maximum complexity.', concepts: ['Business Continuity Planning', 'Outsourcing Decisions'],
+            effects: { warehouseEFlow: 0.5, costMult: 1.7, cost: 20000, effectDuration: 12 } },
+          { id: 'reroute_west', label: 'Reroute Through West DC', desc: 'Ship everything through West Coast. Longer transit but functional systems.', concepts: ['Distribution Network Design', 'Transportation Modes'],
+            effects: { warehouseEFlow: 0.4, warehouseWFlow: 1.4, costMult: 1.3, effectDuration: 12 } }
+        ]
+      },
+      { day: 10, id: 'trade_embargo', title: 'Trade Route Disruption', severity: 'critical',
+        description: 'New sanctions restrict shipping through a key trade corridor. 30% of your international shipments are affected. Customs holding 50 containers.',
+        actions: [
+          { id: 'alt_routes', label: 'Alternative Shipping Routes', desc: 'Reroute via allied ports. 12-day longer transit, 40% higher shipping costs, but sanctions-compliant.', concepts: ['International Trade', 'Sanctions & Export Controls'],
+            effects: { costMult: 1.4, retailSFlow: 0.6, effectDuration: 15 } },
+          { id: 'air_bridge', label: 'Air Freight Bridge', desc: 'Air-ship critical orders while establishing new ocean routes. Extremely expensive, immediate relief.', concepts: ['Transportation Modes', 'Risk Mitigation'],
+            effects: { cost: 60000, retailSFlow: 0.8, costMult: 1.8, effectDuration: 8 } },
+          { id: 'market_pivot', label: 'Temporary Market Pivot', desc: 'Redirect affected international volume to domestic market. Accept international revenue loss.', concepts: ['Supply Chain Strategy', 'International Trade'],
+            effects: { retailSFlow: 0.3, retailNFlow: 1.3, demandMult: 0.9, effectDuration: 15 } }
+        ]
+      },
+      { day: 15, id: 'demand_surge', title: 'Competitor Recall Creates Demand Surge', severity: 'warning',
+        description: 'Major competitor issues product recall. Their customers are flooding to you. Demand up 200% and rising. Your weakened supply chain faces its biggest test.',
+        autoEffects: { demandMult: 2.0 },
+        actions: [
+          { id: 'controlled_growth', label: 'Controlled Growth Response', desc: 'Accept orders strategically. Prioritize high-margin, loyal customers. Manage expectations.', concepts: ['Demand Forecasting', 'Supply Chain Strategy'],
+            effects: { demandMult: 1.5, revenueProtect: 1.1, effectDuration: 15 } },
+          { id: 'all_out', label: 'All-Out Capacity Push', desc: 'Accept every order. Max out all suppliers, factories, overtime. Risk quality and burnout for maximum market capture.', concepts: ['Capacity Planning', 'Production Strategies'],
+            effects: { factoryCap: 130, costMult: 1.7, qualityRisk: true, effectDuration: 15 } },
+          { id: 'partnership', label: 'Strategic Partnership', desc: 'Partner with a non-competing manufacturer to white-label their capacity. Shared risk and reward.', concepts: ['Collaborative Supply Chains', 'Supply Chain Strategy'],
+            effects: { extraCap: 50, costMult: 1.3, effectDuration: 15 } }
+        ]
+      }
+    ]
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════
+// SUPPLY CHAIN MAP LAYOUT
+// ═══════════════════════════════════════════════════════════════
+var MAP_NODES = [
+  { id: 'supplierA', type: 'supplier', x: 80,  y: 160, icon: '\u2B21', color: '#5b8bd6' },
+  { id: 'supplierB', type: 'supplier', x: 80,  y: 340, icon: '\u2B21', color: '#5b8bd6' },
+  { id: 'factory',   type: 'factory',  x: 340, y: 250, icon: '\u2699', color: '#f28e2b' },
+  { id: 'warehouseE',type: 'warehouse',x: 600, y: 160, icon: '\u25A3', color: '#76b7b2' },
+  { id: 'warehouseW',type: 'warehouse',x: 600, y: 340, icon: '\u25A3', color: '#76b7b2' },
+  { id: 'retailN',   type: 'retail',   x: 860, y: 100, icon: '\u25CF', color: '#59a14f' },
+  { id: 'retailS',   type: 'retail',   x: 860, y: 250, icon: '\u25CF', color: '#59a14f' },
+  { id: 'retailW',   type: 'retail',   x: 860, y: 400, icon: '\u25CF', color: '#59a14f' }
+];
+
+var MAP_ROUTES = [
+  { from: 'supplierA', to: 'factory' },
+  { from: 'supplierB', to: 'factory' },
+  { from: 'factory', to: 'warehouseE' },
+  { from: 'factory', to: 'warehouseW' },
+  { from: 'warehouseE', to: 'retailN' },
+  { from: 'warehouseE', to: 'retailS' },
+  { from: 'warehouseW', to: 'retailW' }
+];
+
+// ═══════════════════════════════════════════════════════════════
+// SIMULATION STATE
+// ═══════════════════════════════════════════════════════════════
+var sim = {
+  running: false,
+  paused: false,
+  speed: 1,
+  day: 0,
+  dayProgress: 0,
+  scenario: null,
+  // supply chain state
+  supplierA: { cap: 0, active: true, cost: 1.0 },
+  supplierB: { cap: 0, active: true, cost: 1.2 },
+  factory: { cap: 0, materials: 0, maxMaterials: 400 },
+  warehouseE: { inv: 0, maxInv: 300, flowMult: 1 },
+  warehouseW: { inv: 0, maxInv: 300, flowMult: 1 },
+  retailN: { demand: 0, flowMult: 1 },
+  retailS: { demand: 0, flowMult: 1 },
+  retailW: { demand: 0, flowMult: 1 },
+  // metrics
+  totalRevenue: 0,
+  totalCost: 0,
+  totalFulfilled: 0,
+  totalDemand: 0,
+  totalMissed: 0,
+  costMult: 1.0,
+  demandMult: 1.0,
+  // KPI history
+  kpiHistory: { revenue: [], otif: [], inventory: [], cash: [] },
+  // events
+  pendingEventIdx: 0,
+  triggeredEvents: [],
+  decisions: [],
+  activatedConcepts: new Set(),
+  // temporary effects
+  tempEffects: [],
+  // animation
+  packages: [],
+  lastTick: 0,
+  animFrame: null
+};
+
+var unitPrice = 50;
+var holdingCostPerUnit = 0.5;
+var fixedDailyCost = 500;
+
+// ═══════════════════════════════════════════════════════════════
+// SCENARIO SELECT
+// ═══════════════════════════════════════════════════════════════
+function buildScenarioSelect() {
+  var grid = document.getElementById('scenarioGrid');
+  clearEl(grid);
+  SCENARIOS.forEach(function(sc) {
+    var card = h('div', 'scenario-card');
+    card.appendChild(h('div', 'sc-difficulty', sc.difficulty.toUpperCase()));
+    var dur = h('div', 'sc-duration', sc.duration + ' days');
+    card.appendChild(dur);
+    card.appendChild(h('div', 'sc-name', sc.name));
+    card.appendChild(h('div', 'sc-desc', sc.subtitle));
+    var concepts = h('div', 'sc-concepts');
+    sc.concepts.slice(0, 4).forEach(function(c) {
+      concepts.appendChild(h('span', 'concept-tag', c));
+    });
+    if (sc.concepts.length > 4) {
+      concepts.appendChild(h('span', 'concept-tag', '+' + (sc.concepts.length - 4) + ' more'));
+    }
+    card.appendChild(concepts);
+    card.addEventListener('click', function() { selectScenario(sc); });
+    grid.appendChild(card);
+  });
+}
+
+function selectScenario(sc) {
+  document.getElementById('scenarioOverlay').classList.add('hidden');
+  showBriefing(sc);
+}
+
+function showBriefing(sc) {
+  var overlay = document.getElementById('briefingOverlay');
+  var card = document.getElementById('briefingCard');
+  clearEl(card);
+  card.appendChild(h('h2', null, sc.name));
+  card.appendChild(h('div', 'brief-sub', sc.difficulty + '  \u2022  ' + sc.duration + ' days'));
+  card.appendChild(h('p', null, sc.briefing));
+  var btn = h('button', 'brief-start', 'Begin Simulation');
+  btn.addEventListener('click', function() {
+    overlay.classList.remove('active');
+    startSimulation(sc);
+  });
+  card.appendChild(btn);
+  overlay.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SIMULATION INIT
+// ═══════════════════════════════════════════════════════════════
+function startSimulation(sc) {
+  sim.scenario = sc;
+  sim.running = true;
+  sim.paused = false;
+  sim.speed = 1;
+  sim.day = 1;
+  sim.dayProgress = 0;
+  sim.pendingEventIdx = 0;
+  sim.triggeredEvents = [];
+  sim.decisions = [];
+  sim.activatedConcepts = new Set();
+  sim.tempEffects = [];
+  sim.packages = [];
+  sim.totalRevenue = 0;
+  sim.totalCost = 0;
+  sim.totalFulfilled = 0;
+  sim.totalDemand = 0;
+  sim.totalMissed = 0;
+  sim.costMult = 1.0;
+  sim.demandMult = 1.0;
+  sim.kpiHistory = { revenue: [], otif: [], inventory: [], cash: [] };
+
+  // Init supply chain from scenario
+  var n = sc.nodes;
+  sim.supplierA = { cap: n.supplierA.capacity, active: n.supplierA.active, cost: n.supplierA.cost };
+  sim.supplierB = { cap: n.supplierB.capacity, active: n.supplierB.active, cost: n.supplierB.cost };
+  sim.factory = { cap: n.factory.capacity, materials: n.factory.materials, maxMaterials: n.factory.maxMaterials };
+  sim.warehouseE = { inv: n.warehouseE.inventory, maxInv: n.warehouseE.maxInv, flowMult: 1 };
+  sim.warehouseW = { inv: n.warehouseW.inventory, maxInv: n.warehouseW.maxInv, flowMult: 1 };
+  sim.retailN = { demand: n.retailN.demand, flowMult: 1 };
+  sim.retailS = { demand: n.retailS.demand, flowMult: 1 };
+  sim.retailW = { demand: n.retailW.demand, flowMult: 1 };
+
+  // Show UI
+  document.getElementById('warroom').classList.add('active');
+  document.getElementById('simControls').classList.add('active');
+  updateSpeedButtons();
+  buildMap();
+  buildKPIDashboard();
+  buildConceptList();
+  clearEl(document.getElementById('eventsList'));
+  document.getElementById('actionsSection').style.display = 'none';
+
+  sim.lastTick = performance.now();
+  if (sim.animFrame) cancelAnimationFrame(sim.animFrame);
+  simLoop();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SIMULATION LOOP
+// ═══════════════════════════════════════════════════════════════
+function simLoop() {
+  var now = performance.now();
+  var dt = (now - sim.lastTick) / 1000;
+  sim.lastTick = now;
+
+  if (sim.running && !sim.paused) {
+    // 1 day = 2 seconds at 1x speed
+    sim.dayProgress += dt * sim.speed / 2;
+    while (sim.dayProgress >= 1 && !sim.paused) {
+      sim.dayProgress -= 1;
+      dailyTick();
+    }
+  }
+
+  // Animate packages
+  updatePackages(dt);
+  renderPackages();
+
+  if (sim.running) sim.animFrame = requestAnimationFrame(simLoop);
+}
+
+function dailyTick() {
+  // Expire temporary effects
+  sim.tempEffects = sim.tempEffects.filter(function(e) {
+    e.remaining--;
+    if (e.remaining <= 0) { unapplyEffect(e); return false; }
+    return true;
+  });
+
+  // Check events
+  checkEvents();
+
+  if (sim.paused) return; // Event may have paused
+
+  sim.day++;
+  if (sim.day > sim.scenario.duration) {
+    endSimulation();
+    return;
+  }
+
+  // Supply chain flow
+  var noise = 0.9 + Math.random() * 0.2;
+
+  // Suppliers ship to factory
+  var supAFlow = sim.supplierA.active ? Math.min(sim.supplierA.cap, sim.factory.maxMaterials - sim.factory.materials) : 0;
+  var supBFlow = sim.supplierB.active ? Math.min(sim.supplierB.cap, sim.factory.maxMaterials - sim.factory.materials - supAFlow) : 0;
+  sim.factory.materials += supAFlow + supBFlow;
+  sim.totalCost += (supAFlow * sim.supplierA.cost + supBFlow * sim.supplierB.cost) * sim.costMult;
+
+  // Factory produces
+  var production = Math.min(sim.factory.cap, sim.factory.materials) * noise;
+  sim.factory.materials -= production;
+  var halfProd = production / 2;
+
+  // Ship to warehouses
+  var toE = Math.min(halfProd, sim.warehouseE.maxInv - sim.warehouseE.inv) * sim.warehouseE.flowMult;
+  var toW = Math.min(production - toE, sim.warehouseW.maxInv - sim.warehouseW.inv) * sim.warehouseW.flowMult;
+  sim.warehouseE.inv += Math.max(0, toE);
+  sim.warehouseW.inv += Math.max(0, toW);
+
+  // Retail demand and fulfillment
+  var retailers = [
+    { r: sim.retailN, w: sim.warehouseE, name: 'N' },
+    { r: sim.retailS, w: sim.warehouseE, name: 'S' },
+    { r: sim.retailW, w: sim.warehouseW, name: 'W' }
+  ];
+  var dayFulfilled = 0, dayDemand = 0;
+  retailers.forEach(function(rt) {
+    var demand = Math.round(rt.r.demand * sim.demandMult * noise * rt.r.flowMult);
+    var fulfilled = Math.min(demand, rt.w.inv);
+    rt.w.inv -= fulfilled;
+    dayFulfilled += fulfilled;
+    dayDemand += demand;
+    sim.totalRevenue += fulfilled * unitPrice;
+  });
+
+  sim.totalFulfilled += dayFulfilled;
+  sim.totalDemand += dayDemand;
+  sim.totalMissed += dayDemand - dayFulfilled;
+
+  // Fixed costs
+  var totalInv = sim.warehouseE.inv + sim.warehouseW.inv + sim.factory.materials;
+  sim.totalCost += totalInv * holdingCostPerUnit + fixedDailyCost;
+
+  // Record KPIs
+  var otif = sim.totalDemand > 0 ? sim.totalFulfilled / sim.totalDemand : 1;
+  var invPct = totalInv / (sim.warehouseE.maxInv + sim.warehouseW.maxInv + sim.factory.maxMaterials);
+  sim.kpiHistory.revenue.push(sim.totalRevenue);
+  sim.kpiHistory.otif.push(otif);
+  sim.kpiHistory.inventory.push(invPct);
+  sim.kpiHistory.cash.push(sim.totalRevenue - sim.totalCost);
+
+  // Spawn flow packages
+  if (supAFlow > 5) spawnPackage('supplierA', 'factory', '#5b8bd6');
+  if (supBFlow > 5) spawnPackage('supplierB', 'factory', '#5b8bd6');
+  if (production > 10) {
+    spawnPackage('factory', 'warehouseE', '#f28e2b');
+    spawnPackage('factory', 'warehouseW', '#f28e2b');
+  }
+  if (dayFulfilled > 5) {
+    spawnPackage('warehouseE', 'retailN', '#76b7b2');
+    spawnPackage('warehouseE', 'retailS', '#76b7b2');
+    spawnPackage('warehouseW', 'retailW', '#76b7b2');
+  }
+
+  updateUI();
+}
+
+function checkEvents() {
+  var sc = sim.scenario;
+  while (sim.pendingEventIdx < sc.events.length) {
+    var evt = sc.events[sim.pendingEventIdx];
+    if (evt.day <= sim.day) {
+      triggerEvent(evt);
+      sim.pendingEventIdx++;
+    } else break;
+  }
+}
+
+function triggerEvent(evt) {
+  sim.triggeredEvents.push(evt);
+
+  // Auto effects
+  if (evt.autoEffects) {
+    applyAutoEffects(evt.autoEffects);
+  }
+
+  // Show event card
+  addEventCard(evt);
+
+  // If has actions, pause for decision
+  if (evt.actions && evt.actions.length > 0) {
+    sim.paused = true;
+    updatePauseButton();
+    showActions(evt);
+  }
+}
+
+function applyAutoEffects(ae) {
+  if (ae.supplierAActive === false) sim.supplierA.active = false;
+  if (ae.supplierACap !== undefined) sim.supplierA.cap = ae.supplierACap;
+  if (ae.supplierBCap !== undefined) sim.supplierB.cap = ae.supplierBCap;
+  if (ae.factoryCap !== undefined) sim.factory.cap = ae.factoryCap;
+  if (ae.demandMult !== undefined) sim.demandMult = ae.demandMult;
+  if (ae.supplierADownDays) {
+    sim.tempEffects.push({ remaining: ae.supplierADownDays, type: 'supplierADown' });
+    sim.supplierA.active = false;
+  }
+  if (ae.warehouseEFlow !== undefined) sim.warehouseE.flowMult = ae.warehouseEFlow;
+  updateMapNodeStates();
+}
+
+function unapplyEffect(e) {
+  if (e.type === 'supplierADown') {
+    sim.supplierA.active = true;
+    sim.supplierA.cap = Math.round(sim.scenario.nodes.supplierA.capacity * 0.5);
+  }
+  updateMapNodeStates();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ACTION HANDLING
+// ═══════════════════════════════════════════════════════════════
+var selectedActionId = null;
+var currentEventActions = null;
+
+function showActions(evt) {
+  var section = document.getElementById('actionsSection');
+  section.style.display = '';
+  var list = document.getElementById('actionsList');
+  clearEl(list);
+  selectedActionId = null;
+  currentEventActions = evt;
+
+  evt.actions.forEach(function(action) {
+    var card = h('div', 'action-card');
+    card.dataset.id = action.id;
+    card.appendChild(h('div', 'action-label', action.label));
+    card.appendChild(h('div', 'action-desc', action.desc));
+    var tags = h('div', 'action-concepts');
+    action.concepts.forEach(function(c) { tags.appendChild(h('span', 'concept-tag', c)); });
+    card.appendChild(tags);
+    card.addEventListener('click', function() {
+      list.querySelectorAll('.action-card').forEach(function(c) { c.classList.remove('selected'); });
+      card.classList.add('selected');
+      selectedActionId = action.id;
+      document.getElementById('confirmAction').disabled = false;
+    });
+    list.appendChild(card);
+  });
+
+  document.getElementById('confirmAction').disabled = true;
+}
+
+document.getElementById('confirmAction').addEventListener('click', function() {
+  if (!selectedActionId || !currentEventActions) return;
+  var action = null;
+  currentEventActions.actions.forEach(function(a) { if (a.id === selectedActionId) action = a; });
+  if (!action) return;
+
+  // Apply effects
+  applyActionEffects(action);
+
+  // Record decision
+  sim.decisions.push({ day: sim.day, event: currentEventActions.title, action: action.label, concepts: action.concepts });
+
+  // Activate concepts
+  action.concepts.forEach(function(c) { sim.activatedConcepts.add(c); });
+  updateConceptList();
+
+  // Hide actions, resume
+  document.getElementById('actionsSection').style.display = 'none';
+  selectedActionId = null;
+  currentEventActions = null;
+  sim.paused = false;
+  updatePauseButton();
+});
+
+function applyActionEffects(action) {
+  var e = action.effects;
+  if (!e) return;
+  var dur = e.effectDuration || 999;
+  if (e.supplierACap !== undefined) sim.supplierA.cap = e.supplierACap;
+  if (e.supplierBCap !== undefined) sim.supplierB.cap = e.supplierBCap;
+  if (e.factoryCap !== undefined) sim.factory.cap = e.factoryCap;
+  if (e.costMult !== undefined) sim.costMult = Math.max(sim.costMult, e.costMult);
+  if (e.demandMult !== undefined) sim.demandMult = e.demandMult;
+  if (e.emergencySupply) sim.factory.materials = Math.min(sim.factory.materials + e.emergencySupply, sim.factory.maxMaterials);
+  if (e.cost) sim.totalCost += e.cost;
+  if (e.warehouseEFlow !== undefined) sim.warehouseE.flowMult = e.warehouseEFlow;
+  if (e.warehouseWFlow !== undefined) sim.warehouseW.flowMult = e.warehouseWFlow;
+  if (e.retailNFlow !== undefined) sim.retailN.flowMult = e.retailNFlow;
+  if (e.retailSFlow !== undefined) sim.retailS.flowMult = e.retailSFlow;
+  if (e.fulfillRate) sim.warehouseE.flowMult = e.fulfillRate;
+  if (e.extraCap) sim.factory.cap += e.extraCap;
+  if (e.warehouseCap) { sim.warehouseE.flowMult *= e.warehouseCap; sim.warehouseW.flowMult *= e.warehouseCap; }
+  if (e.revenueProtect) sim.demandMult *= e.revenueProtect;
+  if (e.directFulfill) sim.factory.cap += e.directFulfill;
+  if (e.riskReduction) sim.costMult = Math.max(1, sim.costMult - 0.1);
+  if (e.emissionsReduction) {} // Tracked for scoring
+
+  // Track temp effects for duration-based expiry
+  if (dur < 999) {
+    sim.tempEffects.push({
+      remaining: dur,
+      type: 'action',
+      snapshot: { sCap: sim.supplierA.cap, bCap: sim.supplierB.cap, fCap: sim.factory.cap }
+    });
+  }
+  updateMapNodeStates();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UI UPDATES
+// ═══════════════════════════════════════════════════════════════
+function updateUI() {
+  document.getElementById('simDay').textContent = 'Day ' + sim.day + ' / ' + sim.scenario.duration;
+  updateKPIDashboard();
+  updateMapNodeStates();
+}
+
+function addEventCard(evt) {
+  var list = document.getElementById('eventsList');
+  var card = h('div', 'event-card ' + evt.severity);
+  card.appendChild(h('div', 'event-day', 'DAY ' + sim.day));
+  card.appendChild(h('div', 'event-title', evt.title));
+  card.appendChild(h('div', 'event-desc', evt.description));
+  // Prepend so newest is on top
+  if (list.firstChild) list.insertBefore(card, list.firstChild);
+  else list.appendChild(card);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAP RENDERING
+// ═══════════════════════════════════════════════════════════════
+var mapSvg = document.getElementById('mapSvg');
+var mapNodeEls = {};
+var mapRouteEls = {};
+var mapInvBars = {};
+var mapStatusRings = {};
+
+function buildMap() {
+  clearEl(mapSvg);
+  var defs = svgEl('defs');
+  // Glow filter
+  var filter = svgEl('filter', { id: 'mapGlow' });
+  var blur = svgEl('feGaussianBlur', { stdDeviation: '3', result: 'blur' });
+  filter.appendChild(blur);
+  var merge = svgEl('feMerge');
+  merge.appendChild(svgEl('feMergeNode', { 'in': 'blur' }));
+  merge.appendChild(svgEl('feMergeNode', { 'in': 'SourceGraphic' }));
+  filter.appendChild(merge);
+  defs.appendChild(filter);
+  mapSvg.appendChild(defs);
+
+  // Routes
+  var routeGroup = svgEl('g');
+  MAP_ROUTES.forEach(function(r) {
+    var from = MAP_NODES.find(function(n) { return n.id === r.from; });
+    var to = MAP_NODES.find(function(n) { return n.id === r.to; });
+    var mx = (from.x + to.x) / 2;
+    var my = (from.y + to.y) / 2 + (Math.random() - 0.5) * 30;
+    var d = 'M' + from.x + ',' + from.y + ' Q' + mx + ',' + my + ' ' + to.x + ',' + to.y;
+    var path = svgEl('path', { d: d, stroke: 'var(--text-muted)', 'stroke-opacity': '0.2', fill: 'none', 'stroke-width': '2', id: 'route-' + r.from + '-' + r.to });
+    path.classList.add('route-line');
+    routeGroup.appendChild(path);
+    mapRouteEls[r.from + '-' + r.to] = path;
+  });
+  mapSvg.appendChild(routeGroup);
+
+  // Nodes
+  var nodeGroup = svgEl('g');
+  MAP_NODES.forEach(function(n) {
+    var g = svgEl('g', { transform: 'translate(' + n.x + ',' + n.y + ')' });
+
+    // Status ring (hidden by default)
+    var statusRing = svgEl('circle', { r: '32', fill: 'none', stroke: n.color, 'stroke-width': '2', opacity: '0', class: 'status-ring' });
+    g.appendChild(statusRing);
+    mapStatusRings[n.id] = statusRing;
+
+    // Main circle
+    var r = n.type === 'factory' ? 26 : n.type === 'supplier' ? 22 : n.type === 'warehouse' ? 22 : 18;
+    var circle = svgEl('circle', { r: r, fill: n.color + '33', stroke: n.color, 'stroke-width': '2' });
+    circle.style.filter = 'url(#mapGlow)';
+    g.appendChild(circle);
+    mapNodeEls[n.id] = circle;
+
+    // Icon
+    var icon = svgEl('text', { class: 'node-icon', y: '1' });
+    icon.textContent = n.icon;
+    icon.style.fill = n.color;
+    g.appendChild(icon);
+
+    // Get name from scenario
+    var scenarioName = sim.scenario && sim.scenario.nodes[n.id] ? sim.scenario.nodes[n.id].name : n.id;
+    var label = svgEl('text', { class: 'node-label', y: (r + 16) + '' });
+    label.textContent = scenarioName;
+    g.appendChild(label);
+
+    // Inventory bar (for warehouses and factory)
+    if (n.type === 'warehouse' || n.type === 'factory') {
+      var barW = 40, barH = 4, barY = r + 24;
+      var bg = svgEl('rect', { class: 'inv-bar-bg', x: (-barW/2) + '', y: barY + '', width: barW + '', height: barH + '' });
+      g.appendChild(bg);
+      var fill = svgEl('rect', { class: 'inv-bar-fill', x: (-barW/2) + '', y: barY + '', width: '0', height: barH + '', fill: n.color });
+      g.appendChild(fill);
+      mapInvBars[n.id] = { el: fill, width: barW };
+
+      var invLabel = svgEl('text', { class: 'node-sublabel', y: (barY + 14) + '', id: 'inv-label-' + n.id });
+      invLabel.textContent = '';
+      g.appendChild(invLabel);
+    }
+
+    nodeGroup.appendChild(g);
+  });
+  mapSvg.appendChild(nodeGroup);
+
+  // Package layer
+  var pkgGroup = svgEl('g', { id: 'packageLayer' });
+  mapSvg.appendChild(pkgGroup);
+}
+
+function updateMapNodeStates() {
+  // Supplier A
+  var aColor = sim.supplierA.active ? (sim.supplierA.cap < 50 ? '#f28e2b' : '#5b8bd6') : '#e15759';
+  if (mapNodeEls.supplierA) mapNodeEls.supplierA.setAttribute('stroke', aColor);
+  if (mapStatusRings.supplierA) {
+    mapStatusRings.supplierA.setAttribute('opacity', sim.supplierA.active ? '0' : '0.4');
+    mapStatusRings.supplierA.setAttribute('stroke', '#e15759');
+  }
+  // Supplier B
+  var bColor = sim.supplierB.active ? (sim.supplierB.cap < 30 ? '#f28e2b' : '#5b8bd6') : '#e15759';
+  if (mapNodeEls.supplierB) mapNodeEls.supplierB.setAttribute('stroke', bColor);
+
+  // Factory
+  var fPct = sim.factory.materials / sim.factory.maxMaterials;
+  if (mapInvBars.factory) {
+    mapInvBars.factory.el.setAttribute('width', (mapInvBars.factory.width * clamp(fPct, 0, 1)) + '');
+    mapInvBars.factory.el.setAttribute('fill', fPct < 0.2 ? '#e15759' : fPct < 0.5 ? '#f28e2b' : '#76b7b2');
+  }
+  var fLabel = document.getElementById('inv-label-factory');
+  if (fLabel) fLabel.textContent = Math.round(sim.factory.materials) + ' / ' + sim.factory.maxMaterials;
+
+  // Warehouses
+  ['warehouseE', 'warehouseW'].forEach(function(wid) {
+    var w = sim[wid];
+    var pct = w.inv / w.maxInv;
+    if (mapInvBars[wid]) {
+      mapInvBars[wid].el.setAttribute('width', (mapInvBars[wid].width * clamp(pct, 0, 1)) + '');
+      mapInvBars[wid].el.setAttribute('fill', pct < 0.2 ? '#e15759' : pct < 0.5 ? '#f28e2b' : '#76b7b2');
+    }
+    var lbl = document.getElementById('inv-label-' + wid);
+    if (lbl) lbl.textContent = Math.round(w.inv) + ' / ' + w.maxInv;
+    if (mapStatusRings[wid]) {
+      mapStatusRings[wid].setAttribute('opacity', pct < 0.15 ? '0.4' : '0');
+      mapStatusRings[wid].setAttribute('stroke', '#e15759');
+    }
+  });
+
+  // Route states
+  MAP_ROUTES.forEach(function(r) {
+    var el = mapRouteEls[r.from + '-' + r.to];
+    if (!el) return;
+    var active = true;
+    if (r.from === 'supplierA' && !sim.supplierA.active) active = false;
+    if (r.from === 'supplierB' && !sim.supplierB.active) active = false;
+    el.setAttribute('stroke', active ? 'var(--text-muted)' : '#e15759');
+    el.setAttribute('stroke-opacity', active ? '0.3' : '0.5');
+    if (!active) el.classList.add('disrupted');
+    else el.classList.remove('disrupted');
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PACKAGES (FLOWING DOTS)
+// ═══════════════════════════════════════════════════════════════
+function spawnPackage(fromId, toId, color) {
+  var routeKey = fromId + '-' + toId;
+  var pathEl = mapRouteEls[routeKey];
+  if (!pathEl) return;
+  sim.packages.push({
+    from: fromId, to: toId, color: color,
+    progress: 0, pathLength: pathEl.getTotalLength(),
+    pathEl: pathEl, el: null
+  });
+}
+
+function updatePackages(dt) {
+  var speed = sim.paused ? 0 : sim.speed;
+  sim.packages.forEach(function(pkg) {
+    pkg.progress += dt * speed * 0.4;
+  });
+  sim.packages = sim.packages.filter(function(pkg) { return pkg.progress < 1; });
+}
+
+function renderPackages() {
+  var layer = document.getElementById('packageLayer');
+  if (!layer) return;
+  // Simple approach: rebuild each frame (packages are few)
+  clearEl(layer);
+  sim.packages.forEach(function(pkg) {
+    var pt = pkg.pathEl.getPointAtLength(pkg.progress * pkg.pathLength);
+    var dot = svgEl('circle', { cx: pt.x, cy: pt.y, r: '3', fill: pkg.color, opacity: (1 - pkg.progress * 0.5) + '' });
+    dot.classList.add('flowing-dot');
+    dot.style.filter = 'url(#mapGlow)';
+    layer.appendChild(dot);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// KPI DASHBOARD
+// ═══════════════════════════════════════════════════════════════
+var kpiEls = {};
+
+function buildKPIDashboard() {
+  var panel = document.getElementById('kpiPanel');
+  clearEl(panel);
+  var kpis = [
+    { id: 'revenue', label: 'Revenue', format: fmt$ },
+    { id: 'otif', label: 'On-Time In-Full', format: fmtPct },
+    { id: 'inventory', label: 'Inventory Level', format: fmtPct },
+    { id: 'cash', label: 'Net Position', format: fmt$ }
+  ];
+  kpis.forEach(function(kpi) {
+    var card = h('div', 'kpi-card');
+    var header = h('div', 'kpi-header');
+    header.appendChild(h('span', 'kpi-label', kpi.label));
+    var val = h('span', 'kpi-value', '--');
+    header.appendChild(val);
+    card.appendChild(header);
+    var bar = h('div', 'kpi-bar');
+    var fill = h('div', 'kpi-bar-fill');
+    bar.appendChild(fill);
+    card.appendChild(bar);
+    // Sparkline SVG
+    var spark = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    spark.setAttribute('class', 'kpi-spark');
+    spark.setAttribute('viewBox', '0 0 200 24');
+    spark.setAttribute('preserveAspectRatio', 'none');
+    card.appendChild(spark);
+    panel.appendChild(card);
+    kpiEls[kpi.id] = { val: val, fill: fill, spark: spark, format: kpi.format };
+  });
+}
+
+function updateKPIDashboard() {
+  var otif = sim.totalDemand > 0 ? sim.totalFulfilled / sim.totalDemand : 1;
+  var totalInv = sim.warehouseE.inv + sim.warehouseW.inv + sim.factory.materials;
+  var maxInv = sim.warehouseE.maxInv + sim.warehouseW.maxInv + sim.factory.maxMaterials;
+  var invPct = totalInv / maxInv;
+  var cash = sim.totalRevenue - sim.totalCost;
+
+  var vals = {
+    revenue: { v: sim.totalRevenue, pct: clamp(sim.totalRevenue / (sim.scenario.duration * 75 * unitPrice), 0, 1), cls: 'good' },
+    otif: { v: otif, pct: otif, cls: otif >= 0.9 ? 'good' : otif >= 0.7 ? 'warn' : 'bad' },
+    inventory: { v: invPct, pct: invPct, cls: invPct >= 0.3 ? 'good' : invPct >= 0.15 ? 'warn' : 'bad' },
+    cash: { v: cash, pct: clamp((cash + 50000) / 200000, 0, 1), cls: cash >= 0 ? 'good' : 'bad' }
+  };
+
+  Object.keys(vals).forEach(function(k) {
+    var el = kpiEls[k];
+    if (!el) return;
+    el.val.textContent = el.format(vals[k].v);
+    el.val.className = 'kpi-value ' + vals[k].cls;
+    el.fill.style.width = (vals[k].pct * 100) + '%';
+    el.fill.style.background = vals[k].cls === 'good' ? 'var(--green)' : vals[k].cls === 'warn' ? 'var(--yellow)' : 'var(--red)';
+
+    // Sparkline
+    var data = sim.kpiHistory[k];
+    if (data.length >= 2) renderMiniSpark(el.spark, data, vals[k].cls === 'good' ? '#4caf7a' : vals[k].cls === 'warn' ? '#f28e2b' : '#e15759');
+  });
+}
+
+function renderMiniSpark(svgEl2, data, color) {
+  clearEl(svgEl2);
+  if (data.length < 2) return;
+  var w = 200, ht = 24, pad = 2;
+  var min = Math.min.apply(null, data), max = Math.max.apply(null, data);
+  if (max === min) max = min + 1;
+  var pts = data.map(function(v, i) {
+    var x = pad + (i / (data.length - 1)) * (w - pad * 2);
+    var y = ht - pad - ((v - min) / (max - min)) * (ht - pad * 2);
+    return x + ',' + y;
+  }).join(' ');
+  var area = svgEl('polygon', {
+    points: pts + ' ' + (pad + (w - pad * 2)) + ',' + (ht - pad) + ' ' + pad + ',' + (ht - pad),
+    fill: color, opacity: '0.1', class: 'spark-area'
+  });
+  svgEl2.appendChild(area);
+  var line = svgEl('polyline', { points: pts, stroke: color, 'stroke-width': '1.5', fill: 'none' });
+  svgEl2.appendChild(line);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONCEPTS PANEL
+// ═══════════════════════════════════════════════════════════════
+function buildConceptList() {
+  var list = document.getElementById('conceptList');
+  clearEl(list);
+  if (!sim.scenario) return;
+  sim.scenario.concepts.forEach(function(c) {
+    var item = h('div', 'concept-item');
+    item.dataset.concept = c;
+    item.appendChild(h('span', 'concept-dot'));
+    item.appendChild(document.createTextNode(c));
+    list.appendChild(item);
+  });
+  updateConceptCount();
+}
+
+function updateConceptList() {
+  var items = document.querySelectorAll('#conceptList .concept-item');
+  items.forEach(function(item) {
+    var c = item.dataset.concept;
+    if (sim.activatedConcepts.has(c)) item.classList.add('active');
+  });
+  updateConceptCount();
+}
+
+function updateConceptCount() {
+  var el = document.getElementById('conceptCount');
+  if (!sim.scenario) return;
+  el.textContent = sim.activatedConcepts.size + ' / ' + sim.scenario.concepts.length;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('pauseBtn').addEventListener('click', function() {
+  if (document.getElementById('actionsSection').style.display !== 'none') return; // Can't unpause during decision
+  sim.paused = !sim.paused;
+  updatePauseButton();
+});
+
+function updatePauseButton() {
+  var btn = document.getElementById('pauseBtn');
+  btn.textContent = sim.paused ? '\u25B6' : '\u23F8';
+}
+
+document.querySelectorAll('.speed-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    sim.speed = parseInt(btn.dataset.speed);
+    updateSpeedButtons();
+  });
+});
+
+function updateSpeedButtons() {
+  document.querySelectorAll('.speed-btn').forEach(function(b) {
+    b.classList.toggle('active', parseInt(b.dataset.speed) === sim.speed);
+  });
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  if (!sim.running) return;
+  if (e.code === 'Space') { e.preventDefault(); document.getElementById('pauseBtn').click(); }
+  if (e.key === '1') { sim.speed = 1; updateSpeedButtons(); }
+  if (e.key === '2') { sim.speed = 2; updateSpeedButtons(); }
+  if (e.key === '4') { sim.speed = 4; updateSpeedButtons(); }
+  if (e.key === 'Escape') { exitSimulation(); }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// END SIMULATION & DEBRIEF
+// ═══════════════════════════════════════════════════════════════
+function endSimulation() {
+  sim.running = false;
+  if (sim.animFrame) { cancelAnimationFrame(sim.animFrame); sim.animFrame = null; }
+  showDebrief();
+}
+
+function exitSimulation() {
+  sim.running = false;
+  if (sim.animFrame) { cancelAnimationFrame(sim.animFrame); sim.animFrame = null; }
+  document.getElementById('warroom').classList.remove('active');
+  document.getElementById('simControls').classList.remove('active');
+  document.getElementById('debriefOverlay').classList.remove('active');
+  document.getElementById('scenarioOverlay').classList.remove('hidden');
+}
+
+function showDebrief() {
+  var overlay = document.getElementById('debriefOverlay');
+  var content = document.getElementById('debriefContent');
+  clearEl(content);
+
+  // Calculate score
+  var otif = sim.totalDemand > 0 ? sim.totalFulfilled / sim.totalDemand : 0;
+  var cash = sim.totalRevenue - sim.totalCost;
+  var maxRevenue = sim.scenario.duration * 75 * unitPrice;
+  var revenueScore = clamp(sim.totalRevenue / maxRevenue, 0, 1) * 100;
+  var serviceScore = otif * 100;
+  var conceptScore = (sim.activatedConcepts.size / sim.scenario.concepts.length) * 100;
+  var cashScore = clamp((cash + 20000) / 80000, 0, 1) * 100;
+  var overall = Math.round(revenueScore * 0.25 + serviceScore * 0.3 + conceptScore * 0.25 + cashScore * 0.2);
+
+  var grade, gradeColor;
+  if (overall >= 95) { grade = 'S'; gradeColor = '#4caf7a'; }
+  else if (overall >= 85) { grade = 'A'; gradeColor = '#4caf7a'; }
+  else if (overall >= 70) { grade = 'B'; gradeColor = '#76b7b2'; }
+  else if (overall >= 55) { grade = 'C'; gradeColor = '#f28e2b'; }
+  else if (overall >= 40) { grade = 'D'; gradeColor = '#e15759'; }
+  else { grade = 'F'; gradeColor = '#e15759'; }
+
+  // Header
+  var header = h('div', 'debrief-header');
+  header.appendChild(h('h2', null, 'Mission Debrief: ' + sim.scenario.name));
+  var gradeEl = h('div', 'debrief-grade', grade);
+  gradeEl.style.color = gradeColor;
+  header.appendChild(gradeEl);
+  header.appendChild(h('div', 'debrief-score', 'Overall Score: ' + overall + ' / 100'));
+  content.appendChild(header);
+
+  // KPI summary
+  var kpiSection = h('div', 'debrief-section');
+  kpiSection.appendChild(h('h3', null, 'Performance Summary'));
+  var kpiGrid = h('div', 'debrief-kpi-grid');
+  [
+    { label: 'Revenue', val: fmt$(sim.totalRevenue), color: revenueScore >= 70 ? '#4caf7a' : '#f28e2b' },
+    { label: 'OTIF Rate', val: fmtPct(otif), color: serviceScore >= 80 ? '#4caf7a' : serviceScore >= 60 ? '#f28e2b' : '#e15759' },
+    { label: 'Net Cash', val: fmt$(cash), color: cash >= 0 ? '#4caf7a' : '#e15759' },
+    { label: 'Concepts', val: sim.activatedConcepts.size + '/' + sim.scenario.concepts.length, color: conceptScore >= 70 ? '#4caf7a' : '#f28e2b' }
+  ].forEach(function(k) {
+    var card = h('div', 'debrief-kpi');
+    var val = h('div', 'dk-val', k.val);
+    val.style.color = k.color;
+    card.appendChild(val);
+    card.appendChild(h('div', 'dk-label', k.label));
+    kpiGrid.appendChild(card);
+  });
+  kpiSection.appendChild(kpiGrid);
+  content.appendChild(kpiSection);
+
+  // Decision timeline
+  if (sim.decisions.length > 0) {
+    var timeSection = h('div', 'debrief-section');
+    timeSection.appendChild(h('h3', null, 'Decision Timeline'));
+    var timeline = h('div', 'debrief-timeline');
+    sim.decisions.forEach(function(d) {
+      var item = h('div', 'debrief-decision');
+      item.appendChild(h('div', 'dd-day', 'Day ' + d.day));
+      var textDiv = h('div', 'dd-text');
+      textDiv.appendChild(h('div', 'dd-action', d.action));
+      textDiv.appendChild(document.createTextNode(d.event));
+      item.appendChild(textDiv);
+      timeline.appendChild(item);
+    });
+    timeSection.appendChild(timeline);
+    content.appendChild(timeSection);
+  }
+
+  // Concepts covered
+  var conceptSection = h('div', 'debrief-section');
+  conceptSection.appendChild(h('h3', null, 'Concepts Explored'));
+  var conceptsDiv = h('div', 'debrief-concepts');
+  sim.scenario.concepts.forEach(function(c) {
+    var tag = h('span', 'debrief-concept', c);
+    if (sim.activatedConcepts.has(c)) tag.classList.add('covered');
+    conceptsDiv.appendChild(tag);
+  });
+  conceptSection.appendChild(conceptsDiv);
+  content.appendChild(conceptSection);
+
+  // Actions
+  var actionsDiv = h('div', 'debrief-actions');
+  var replayBtn = h('button', 'btn', 'Replay Scenario');
+  replayBtn.addEventListener('click', function() {
+    overlay.classList.remove('active');
+    startSimulation(sim.scenario);
+  });
+  var newBtn = h('button', 'btn', 'Choose Scenario');
+  newBtn.style.background = 'var(--accent)';
+  newBtn.style.color = '#fff';
+  newBtn.style.borderColor = 'var(--accent)';
+  newBtn.addEventListener('click', function() { exitSimulation(); });
+  var graphBtn = h('a', 'btn', 'Explore in Graph');
+  graphBtn.href = 'graph.html';
+  actionsDiv.appendChild(replayBtn);
+  actionsDiv.appendChild(newBtn);
+  actionsDiv.appendChild(graphBtn);
+  content.appendChild(actionsDiv);
+
+  overlay.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════════════════════
+var btnTheme = document.getElementById('btnTheme');
+var themeLabel = document.getElementById('themeLabel');
+var savedTheme = localStorage.getItem('scm-tree-theme');
+if (savedTheme === 'light') {
+  document.body.classList.replace('dark', 'light');
+  themeLabel.textContent = 'Dark';
+}
+btnTheme.addEventListener('click', function() {
+  var isLight = document.body.classList.contains('light');
+  document.body.classList.replace(isLight ? 'light' : 'dark', isLight ? 'dark' : 'light');
+  themeLabel.textContent = isLight ? 'Light' : 'Dark';
+  localStorage.setItem('scm-tree-theme', isLight ? 'dark' : 'light');
+});
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+buildScenarioSelect();
+
+</script>
+</body>
+</html>
