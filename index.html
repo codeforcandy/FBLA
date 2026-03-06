@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supply Chain Management — Knowledge Tree</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0f1118;
+  --bg-secondary: #161922;
+  --bg-tertiary: #1c2030;
+  --bg-panel: #12141e;
+  --text-primary: #e8e6e1;
+  --text-secondary: #9b9a97;
+  --text-muted: #5c5b59;
+  --accent: #4fd1a0;
+  --accent-glow: rgba(79, 209, 160, 0.15);
+  --border: rgba(255,255,255,0.06);
+  --border-active: rgba(79, 209, 160, 0.3);
+  --link-color: rgba(255,255,255,0.12);
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --radius: 10px;
+  --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.light {
+  --bg-primary: #f5f2ed;
+  --bg-secondary: #ebe8e2;
+  --bg-tertiary: #e0ddd6;
+  --bg-panel: #faf8f5;
+  --text-primary: #1a1a1a;
+  --text-secondary: #5c5b59;
+  --text-muted: #9b9a97;
+  --accent: #2a9d6e;
+  --accent-glow: rgba(42, 157, 110, 0.1);
+  --border: rgba(0,0,0,0.08);
+  --border-active: rgba(42, 157, 110, 0.3);
+  --link-color: rgba(0,0,0,0.1);
+  --shadow: 0 8px 32px rgba(0,0,0,0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  transition: background var(--transition), color var(--transition);
+}
+
+/* ── Noise overlay for texture ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── Header ── */
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  transition: background var(--transition), border var(--transition);
+}
+
+.header-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+.header-title span {
+  color: var(--accent);
+}
+
+.header-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* ── Search ── */
+.search-wrap {
+  position: relative;
+  flex: 0 1 320px;
+}
+
+.search-wrap svg {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  width: 16px; height: 16px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 36px 8px 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border var(--transition), background var(--transition);
+}
+
+.search-input::placeholder { color: var(--text-muted); }
+.search-input:focus { border-color: var(--border-active); }
+
+.search-clear {
+  position: absolute;
+  right: 8px; top: 50%;
+  transform: translateY(-50%);
+  width: 20px; height: 20px;
+  border: none;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  border-radius: 4px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.search-clear.visible { display: flex; }
+
+.search-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  min-width: 60px;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition);
+}
+
+.btn:hover {
+  border-color: var(--border-active);
+  color: var(--text-primary);
+  background: var(--accent-glow);
+}
+
+.btn svg { width: 14px; height: 14px; }
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  align-items: center;
+}
+
+/* ── Zoom controls ── */
+.zoom-controls {
+  position: fixed;
+  bottom: 24px; left: 24px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+  box-shadow: var(--shadow);
+  transition: background var(--transition), border var(--transition);
+}
+
+.zoom-btn {
+  width: 36px; height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all var(--transition);
+}
+
+.zoom-btn:hover {
+  background: var(--accent-glow);
+  color: var(--accent);
+}
+
+.zoom-level {
+  text-align: center;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  padding: 2px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Legend ── */
+.legend {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  gap: 20px;
+  padding: 10px 20px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: background var(--transition), border var(--transition);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.legend-shape {
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.legend-shape svg { width: 14px; height: 14px; }
+
+/* ── SVG canvas ── */
+.tree-container {
+  position: fixed;
+  top: 56px; left: 0; right: 0; bottom: 0;
+}
+
+.tree-container svg {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.tree-container svg:active { cursor: grabbing; }
+
+/* ── Tree styles ── */
+.link {
+  fill: none;
+  stroke: var(--link-color);
+  stroke-width: 1.5;
+  transition: stroke 0.3s;
+}
+
+.link.highlighted {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-opacity: 0.7;
+}
+
+.node { cursor: pointer; }
+
+.node text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  fill: var(--text-secondary);
+  transition: fill 0.3s;
+}
+
+.node text.section-label {
+  font-weight: 700;
+  font-size: 13px;
+  fill: var(--text-primary);
+}
+
+.node text.root-label {
+  font-weight: 700;
+  font-size: 15px;
+  fill: var(--accent);
+}
+
+.node:hover text { fill: var(--text-primary); }
+
+.node .collapse-indicator {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  fill: var(--text-muted);
+}
+
+.node.search-match text { fill: var(--accent) !important; font-weight: 600; }
+.node.search-match .node-shape { filter: drop-shadow(0 0 6px var(--accent)); }
+
+/* ── Detail panel ── */
+.detail-panel {
+  position: fixed;
+  top: 56px; right: 0;
+  width: 380px;
+  height: calc(100vh - 56px);
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  z-index: 90;
+  transform: translateX(100%);
+  transition: transform var(--transition), background var(--transition), border var(--transition);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 32px rgba(0,0,0,0.2);
+}
+
+.detail-panel.open { transform: translateX(0); }
+
+.detail-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 28px; height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all var(--transition);
+}
+
+.detail-close:hover { color: var(--text-primary); border-color: var(--border-active); }
+
+.detail-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.detail-breadcrumb .sep { margin: 0 2px; }
+
+.detail-breadcrumb .current { color: var(--accent); font-weight: 500; }
+
+.detail-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+.detail-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+.detail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.detail-body p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.detail-children {
+  margin-top: 20px;
+}
+
+.detail-children h4 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.detail-child-item {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: all var(--transition);
+  cursor: pointer;
+}
+
+.detail-child-item:hover {
+  border-color: var(--border-active);
+  background: var(--accent-glow);
+}
+
+.detail-child-item .child-type {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.detail-child-item .child-preview {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .header { padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
+  .header-title { font-size: 14px; }
+  .search-wrap { flex: 1 1 100%; order: 10; }
+  .detail-panel { width: 100%; }
+  .legend { gap: 12px; padding: 8px 14px; }
+  .legend-item { font-size: 10px; }
+}
+
+/* ── Scrollbar ── */
+.detail-body::-webkit-scrollbar { width: 4px; }
+.detail-body::-webkit-scrollbar-track { background: transparent; }
+.detail-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body class="dark">
+
+<!-- Header -->
+<header class="header">
+  <div class="header-title">Supply Chain <span>Knowledge Tree</span></div>
+  <div class="header-sep"></div>
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input class="search-input" type="text" placeholder="Search topics..." id="searchInput">
+    <button class="search-clear" id="searchClear">&times;</button>
+  </div>
+  <span class="search-count" id="searchCount"></span>
+  <div class="header-actions">
+    <button class="btn" id="btnExpand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg>
+      Expand All
+    </button>
+    <button class="btn" id="btnCollapse">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3"/></svg>
+      Collapse All
+    </button>
+    <div class="header-sep"></div>
+    <button class="btn" id="btnTheme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      <span id="themeLabel">Light</span>
+    </button>
+  </div>
+</header>
+
+<!-- Zoom controls -->
+<div class="zoom-controls">
+  <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
+  <div class="zoom-level" id="zoomLevel">100%</div>
+  <button class="zoom-btn" id="zoomOut" title="Zoom out">&minus;</button>
+  <button class="zoom-btn" id="zoomFit" title="Fit to screen" style="font-size:14px">&#8634;</button>
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item">
+    <div class="legend-shape"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="#4fd1a0" opacity="0.8"/></svg></div>
+    Section
+  </div>
+  <div class="legend-item">
+    <div class="legend-shape"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="none" stroke="#aaa" stroke-width="1.5"/></svg></div>
+    Topic
+  </div>
+  <div class="legend-item">
+    <div class="legend-shape"><svg viewBox="0 0 14 14"><polygon points="7,1 13,7 7,13 1,7" fill="#8B6914" opacity="0.8"/></svg></div>
+    Roots
+  </div>
+  <div class="legend-item">
+    <div class="legend-shape"><svg viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="1" fill="#6B4226" opacity="0.8"/></svg></div>
+    Trunk
+  </div>
+  <div class="legend-item">
+    <div class="legend-shape"><svg viewBox="0 0 14 14"><polygon points="7,2 12,12 2,12" fill="#2d8a4e" opacity="0.8"/></svg></div>
+    Branches
+  </div>
+  <div class="legend-item">
+    <div class="legend-shape"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="#48c774" opacity="0.8"/></svg></div>
+    Leaves
+  </div>
+</div>
+
+<!-- Detail Panel -->
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-header">
+    <button class="detail-close" id="detailClose">&times;</button>
+    <div class="detail-breadcrumb" id="detailBreadcrumb"></div>
+    <div class="detail-type" id="detailType"></div>
+    <div class="detail-title" id="detailTitle"></div>
+  </div>
+  <div class="detail-body" id="detailBody"></div>
+</div>
+
+<!-- Tree Container -->
+<div class="tree-container" id="treeContainer">
+  <svg id="treeSvg"></svg>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA — Supply Chain Management Knowledge Tree
+// ═══════════════════════════════════════════════════════════════
+
+const treeData = {
+  name: "Supply Chain Management",
+  type: "root",
+  detail: "A comprehensive knowledge tree covering all aspects of Supply Chain Management, from foundational concepts to advanced strategies.",
+  children: [
+    {
+      name: "A \u2014 Foundations of SCM",
+      type: "section",
+      sectionIndex: 0,
+      children: [
+        { name: "Define SCM", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Basic purpose of managing supply chains: ensuring the right product reaches the right place at the right time at minimal cost." },
+          { name: "Trunk", type: "trunk", detail: "Integration of sourcing, production, and delivery into a unified process that spans from raw material extraction to final customer delivery." },
+          { name: "Branches", type: "branches", detail: "End-to-end coordination across suppliers, manufacturers, distributors, retailers, and customers \u2014 including information, material, and financial flows." },
+          { name: "Leaves", type: "leaves", detail: "Metrics like perfect order rate, cash-to-cash cycle time, and total cost of ownership used to evaluate SCM effectiveness." }
+        ]},
+        { name: "Importance of SCM", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "SCM matters because it directly impacts cost, quality, speed, and customer satisfaction." },
+          { name: "Trunk", type: "trunk", detail: "Effective SCM creates competitive advantage through lower costs, faster delivery, and higher reliability." },
+          { name: "Branches", type: "branches", detail: "SCM enables globalization, supports sustainability goals, and helps firms adapt to demand variability." },
+          { name: "Leaves", type: "leaves", detail: "Companies like Amazon and Zara demonstrate how SCM excellence translates into market dominance and customer loyalty." }
+        ]},
+        { name: "Key Components", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "The five core components: Plan, Source, Make, Deliver, and Return." },
+          { name: "Trunk", type: "trunk", detail: "Each component involves distinct processes \u2014 demand planning, supplier management, manufacturing, logistics, and reverse logistics." },
+          { name: "Branches", type: "branches", detail: "Components interconnect through information systems (ERP, WMS, TMS) and performance metrics at each stage." },
+          { name: "Leaves", type: "leaves", detail: "Advanced integration uses AI for demand sensing, blockchain for traceability, and IoT for real-time visibility across all components." }
+        ]},
+        { name: "Supply Chain vs Value Chain", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Supply chain focuses on logistics and flow of goods; value chain focuses on activities that add value to the final product." },
+          { name: "Trunk", type: "trunk", detail: "Porter's value chain model identifies primary (inbound logistics, operations, outbound logistics, marketing, service) and support activities." },
+          { name: "Branches", type: "branches", detail: "Modern thinking merges both \u2014 a well-managed supply chain IS a value chain when each link adds value rather than just moving goods." },
+          { name: "Leaves", type: "leaves", detail: "Value stream mapping (VSM) techniques help identify waste and value-adding steps across the entire chain." }
+        ]},
+        { name: "History & Evolution", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "SCM evolved from simple logistics management in the 1950s to a strategic discipline." },
+          { name: "Trunk", type: "trunk", detail: "Key eras: physical distribution (1960s), integrated logistics (1980s), supply chain integration (1990s), digital supply chains (2010s)." },
+          { name: "Branches", type: "branches", detail: "Globalization, e-commerce, and lean manufacturing drove major shifts. COVID-19 exposed vulnerabilities and accelerated digital transformation." },
+          { name: "Leaves", type: "leaves", detail: "Industry 4.0 and Supply Chain 4.0 represent current frontier \u2014 autonomous, predictive, and hyper-connected chains." }
+        ]},
+        { name: "SCM Frameworks", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Frameworks provide structured approaches to analyze and improve supply chains." },
+          { name: "Trunk", type: "trunk", detail: "SCOR (Supply Chain Operations Reference) model is the most widely adopted framework, organizing processes into Plan, Source, Make, Deliver, Return, Enable." },
+          { name: "Branches", type: "branches", detail: "Other frameworks include GSCF (Global Supply Chain Forum), DCOR (Design Chain Operations Reference), and the APICS Supply Chain Manager competency model." },
+          { name: "Leaves", type: "leaves", detail: "Framework selection depends on industry context, maturity level, and strategic goals \u2014 many firms customize hybrid approaches." }
+        ]}
+      ]
+    },
+    {
+      name: "B \u2014 Procurement & Sourcing",
+      type: "section",
+      sectionIndex: 1,
+      children: [
+        { name: "Procurement Process", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Procurement is the process of finding, acquiring, and buying goods and services from external sources." },
+          { name: "Trunk", type: "trunk", detail: "Key steps: need identification, supplier research, solicitation (RFQ/RFP), evaluation, negotiation, contract award, and order management." },
+          { name: "Branches", type: "branches", detail: "Strategic procurement aligns purchasing decisions with business goals \u2014 considering total cost of ownership, not just unit price." },
+          { name: "Leaves", type: "leaves", detail: "E-procurement platforms and spend analytics tools automate and optimize the entire procure-to-pay cycle." }
+        ]},
+        { name: "Supplier Selection", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Choosing the right supplier based on price, quality, reliability, and capability." },
+          { name: "Trunk", type: "trunk", detail: "Evaluation criteria include financial stability, capacity, lead times, quality certifications (ISO 9001), and geographic location." },
+          { name: "Branches", type: "branches", detail: "Multi-criteria decision methods (AHP, TOPSIS) and supplier scorecards enable systematic evaluation across weighted factors." },
+          { name: "Leaves", type: "leaves", detail: "AI-powered supplier discovery platforms can analyze thousands of potential suppliers across global databases in real time." }
+        ]},
+        { name: "Supplier Relationship Management", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Managing ongoing interactions with suppliers to maximize value from those relationships." },
+          { name: "Trunk", type: "trunk", detail: "SRM segments suppliers by strategic importance \u2014 transactional, leveraged, bottleneck, and strategic/partnership tiers." },
+          { name: "Branches", type: "branches", detail: "Strategic suppliers receive joint business planning, shared KPIs, innovation collaboration, and long-term contracts." },
+          { name: "Leaves", type: "leaves", detail: "Supplier development programs invest in improving supplier capabilities \u2014 training, technology sharing, and process improvement." }
+        ]},
+        { name: "Strategic Sourcing", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "A systematic approach to optimizing an organization's supply base and improving overall value." },
+          { name: "Trunk", type: "trunk", detail: "Involves spend analysis, market assessment, supplier strategy development, negotiation, and continuous improvement." },
+          { name: "Branches", type: "branches", detail: "Sourcing strategies include single vs. multi-sourcing, near-shoring vs. off-shoring, and make-vs-buy decisions." },
+          { name: "Leaves", type: "leaves", detail: "Category management applies retail merchandising concepts to procurement \u2014 managing spend categories as strategic business units." }
+        ]},
+        { name: "Global Sourcing", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Buying goods and services from suppliers in other countries to reduce costs or access capabilities." },
+          { name: "Trunk", type: "trunk", detail: "Considerations include landed cost, currency risk, lead times, trade regulations, tariffs, and cultural differences." },
+          { name: "Branches", type: "branches", detail: "Risk mitigation through dual-sourcing, regional diversification, and supplier audits for quality and compliance." },
+          { name: "Leaves", type: "leaves", detail: "Post-COVID trend toward regionalization and nearshoring \u2014 balancing cost efficiency with supply chain resilience." }
+        ]},
+        { name: "Contract Management", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "The process of managing contracts with suppliers from creation through execution to renewal or termination." },
+          { name: "Trunk", type: "trunk", detail: "Key elements: terms and conditions, SLAs, pricing mechanisms, change management clauses, and dispute resolution." },
+          { name: "Branches", type: "branches", detail: "Contract lifecycle management (CLM) software automates authoring, approvals, compliance tracking, and renewal alerts." },
+          { name: "Leaves", type: "leaves", detail: "Smart contracts on blockchain can automate payments and penalties based on predefined conditions and real-time data." }
+        ]},
+        { name: "Ethical Sourcing", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Ensuring products are obtained responsibly \u2014 respecting human rights, labor standards, and environmental regulations." },
+          { name: "Trunk", type: "trunk", detail: "Key areas: child labor prevention, fair wages, safe working conditions, anti-corruption, and environmental stewardship." },
+          { name: "Branches", type: "branches", detail: "Certifications (Fair Trade, SA8000) and audit programs verify supplier compliance with ethical standards." },
+          { name: "Leaves", type: "leaves", detail: "Transparency initiatives like supply chain mapping and public reporting build consumer trust and regulatory compliance." }
+        ]}
+      ]
+    },
+    {
+      name: "C \u2014 Inventory Management",
+      type: "section",
+      sectionIndex: 2,
+      children: [
+        { name: "Inventory Types", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Inventory includes raw materials, work-in-progress (WIP), finished goods, and MRO (maintenance, repair, operations) supplies." },
+          { name: "Trunk", type: "trunk", detail: "Each type has different holding costs, turnover rates, and management strategies." },
+          { name: "Branches", type: "branches", detail: "Safety stock, cycle stock, pipeline inventory, and anticipation inventory serve distinct buffering purposes." },
+          { name: "Leaves", type: "leaves", detail: "ABC analysis classifies inventory by value \u2014 A items (20% of SKUs, 80% of value) get tight control; C items get simple rules." }
+        ]},
+        { name: "EOQ & Reorder Points", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Economic Order Quantity (EOQ) balances ordering costs against holding costs to find the optimal order size." },
+          { name: "Trunk", type: "trunk", detail: "EOQ formula: \u221a(2DS/H) where D=annual demand, S=order cost, H=holding cost per unit per year." },
+          { name: "Branches", type: "branches", detail: "Reorder Point = (Average Daily Demand \u00d7 Lead Time) + Safety Stock. Safety stock accounts for demand and lead time variability." },
+          { name: "Leaves", type: "leaves", detail: "Extensions include quantity discounts, planned shortages, and stochastic models that handle demand uncertainty probabilistically." }
+        ]},
+        { name: "Just-In-Time (JIT)", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "JIT minimizes inventory by receiving goods only when needed in the production process." },
+          { name: "Trunk", type: "trunk", detail: "Originated at Toyota \u2014 requires reliable suppliers, small lot sizes, quick setups, and pull-based production signals (Kanban)." },
+          { name: "Branches", type: "branches", detail: "Benefits: reduced holding costs, less waste, improved quality. Risks: vulnerability to supply disruptions, requires stable demand." },
+          { name: "Leaves", type: "leaves", detail: "JIT II places supplier representatives on-site to manage replenishment \u2014 pioneered by Bose Corporation." }
+        ]},
+        { name: "Inventory Optimization", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Balancing service level targets against inventory investment to minimize total cost." },
+          { name: "Trunk", type: "trunk", detail: "Multi-echelon inventory optimization (MEIO) considers the entire network, not just individual locations." },
+          { name: "Branches", type: "branches", detail: "Techniques: demand segmentation, postponement, vendor-managed inventory (VMI), and consignment stocking." },
+          { name: "Leaves", type: "leaves", detail: "Machine learning models improve demand forecasting accuracy by 20-50%, enabling significant inventory reduction." }
+        ]},
+        { name: "Warehouse Management", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Planning and controlling warehouse operations \u2014 receiving, put-away, storage, picking, packing, and shipping." },
+          { name: "Trunk", type: "trunk", detail: "Warehouse Management Systems (WMS) direct operations, optimize slotting, and manage labor productivity." },
+          { name: "Branches", type: "branches", detail: "Automation options: conveyor systems, AS/RS, goods-to-person robots, pick-to-light, voice picking, and autonomous mobile robots." },
+          { name: "Leaves", type: "leaves", detail: "Dark warehouses (fully automated) and micro-fulfillment centers represent the frontier of warehouse innovation." }
+        ]},
+        { name: "Demand Forecasting", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Predicting future customer demand to drive inventory, production, and sourcing decisions." },
+          { name: "Trunk", type: "trunk", detail: "Methods: qualitative (expert judgment, Delphi) and quantitative (moving averages, exponential smoothing, regression, ARIMA)." },
+          { name: "Branches", type: "branches", detail: "Demand sensing uses real-time POS data, social media signals, and weather data to improve short-term forecast accuracy." },
+          { name: "Leaves", type: "leaves", detail: "Machine learning approaches (neural networks, gradient boosting) outperform traditional methods for complex, non-linear demand patterns." }
+        ]}
+      ]
+    },
+    {
+      name: "D \u2014 Logistics & Transportation",
+      type: "section",
+      sectionIndex: 3,
+      children: [
+        { name: "Transportation Modes", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Five primary modes: road (truck), rail, ocean, air, and pipeline. Each has distinct cost/speed/capacity tradeoffs." },
+          { name: "Trunk", type: "trunk", detail: "Intermodal transport combines modes for efficiency \u2014 e.g., ocean + rail + truck for international shipments." },
+          { name: "Branches", type: "branches", detail: "Mode selection factors: distance, weight, volume, value, urgency, reliability, and environmental impact." },
+          { name: "Leaves", type: "leaves", detail: "Emerging modes: drones for last-mile, autonomous trucks, hyperloop for freight, and electric/hydrogen-powered vehicles." }
+        ]},
+        { name: "Freight Management", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Planning, executing, and optimizing the movement of goods through the transportation network." },
+          { name: "Trunk", type: "trunk", detail: "Key functions: carrier selection, rate negotiation, shipment consolidation, routing, and freight audit/payment." },
+          { name: "Branches", type: "branches", detail: "Transportation Management Systems (TMS) optimize carrier selection, routing, and load planning across the network." },
+          { name: "Leaves", type: "leaves", detail: "Digital freight platforms and real-time visibility tools transform freight management transparency." }
+        ]},
+        { name: "Last-Mile Delivery", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "The final step of delivery from distribution center to customer \u2014 often the most expensive and complex part." },
+          { name: "Trunk", type: "trunk", detail: "Challenges: high cost per delivery, failed deliveries, customer time-window expectations, and urban congestion." },
+          { name: "Branches", type: "branches", detail: "Solutions: route optimization, crowdsourced delivery, locker networks, micro-fulfillment centers, and dynamic delivery windows." },
+          { name: "Leaves", type: "leaves", detail: "Autonomous delivery robots, drone delivery programs, and same-hour delivery innovations." }
+        ]},
+        { name: "Distribution Network Design", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Determining the number, location, and role of warehouses and distribution centers in the supply chain." },
+          { name: "Trunk", type: "trunk", detail: "Tradeoffs: more DCs improve service speed but increase inventory and facility costs. Fewer DCs reduce cost but slow delivery." },
+          { name: "Branches", type: "branches", detail: "Network optimization models balance transportation costs, inventory costs, facility costs, and customer service requirements." },
+          { name: "Leaves", type: "leaves", detail: "Omnichannel networks blur boundaries \u2014 stores become fulfillment centers, and forward-positioned inventory enables same-day delivery." }
+        ]},
+        { name: "Reverse Logistics", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Managing the flow of products from customer back to the company \u2014 returns, repairs, recycling, disposal." },
+          { name: "Trunk", type: "trunk", detail: "Processes: return authorization, collection, inspection, disposition (refurbish, remanufacture, recycle, dispose)." },
+          { name: "Branches", type: "branches", detail: "Cost of returns is 2-3x forward logistics. Effective reverse logistics recovers value and improves customer loyalty." },
+          { name: "Leaves", type: "leaves", detail: "Circular economy principles integrate reverse logistics into product design \u2014 designing for disassembly and material recovery." }
+        ]},
+        { name: "3PL & 4PL", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Third-party logistics (3PL) outsources warehousing and transportation. Fourth-party logistics (4PL) manages the entire supply chain." },
+          { name: "Trunk", type: "trunk", detail: "3PL benefits: scalability, expertise, technology access, reduced capital investment. 4PL adds strategic management and integration." },
+          { name: "Branches", type: "branches", detail: "Selection criteria: industry expertise, technology capabilities, geographic coverage, financial stability, and cultural fit." },
+          { name: "Leaves", type: "leaves", detail: "Digital 3PLs combine traditional logistics with technology platforms for end-to-end visibility." }
+        ]}
+      ]
+    },
+    {
+      name: "E \u2014 Manufacturing & Production",
+      type: "section",
+      sectionIndex: 4,
+      children: [
+        { name: "Production Strategies", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Three primary strategies: Make-to-Stock (MTS), Make-to-Order (MTO), and Assemble-to-Order (ATO)." },
+          { name: "Trunk", type: "trunk", detail: "MTS forecasts demand and builds inventory. MTO waits for orders. ATO pre-builds components, assembles on order." },
+          { name: "Branches", type: "branches", detail: "Engineer-to-Order (ETO) for custom products. The customer order decoupling point determines which strategy applies." },
+          { name: "Leaves", type: "leaves", detail: "Mass customization combines MTS efficiency with MTO personalization \u2014 think Dell's configure-to-order model." }
+        ]},
+        { name: "Lean Manufacturing", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Systematic elimination of waste (muda) while delivering value from the customer's perspective." },
+          { name: "Trunk", type: "trunk", detail: "Seven wastes: overproduction, waiting, transportation, overprocessing, inventory, motion, and defects. Some add unused talent as #8." },
+          { name: "Branches", type: "branches", detail: "Tools: 5S, Kanban, value stream mapping, poka-yoke (error-proofing), kaizen events, and one-piece flow." },
+          { name: "Leaves", type: "leaves", detail: "Lean extends beyond manufacturing to lean supply chains \u2014 reducing waste across the entire value network." }
+        ]},
+        { name: "Six Sigma", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "A data-driven methodology for eliminating defects \u2014 targeting 3.4 defects per million opportunities." },
+          { name: "Trunk", type: "trunk", detail: "DMAIC cycle: Define, Measure, Analyze, Improve, Control. Each phase has specific tools and deliverables." },
+          { name: "Branches", type: "branches", detail: "Key tools: process capability analysis, control charts, FMEA, hypothesis testing, regression, and design of experiments." },
+          { name: "Leaves", type: "leaves", detail: "Lean Six Sigma combines waste elimination with variation reduction \u2014 belt certification (Green, Black, Master Black Belt) validates expertise." }
+        ]},
+        { name: "Capacity Planning", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Determining the production capacity needed to meet changing demand over time." },
+          { name: "Trunk", type: "trunk", detail: "Levels: long-range (facilities, equipment), medium-range (workforce, subcontracting), short-range (scheduling, overtime)." },
+          { name: "Branches", type: "branches", detail: "Strategies: lead (build ahead of demand), lag (build after demand confirmed), match (incremental additions)." },
+          { name: "Leaves", type: "leaves", detail: "Theory of Constraints (TOC) identifies and manages bottleneck resources to maximize overall throughput." }
+        ]},
+        { name: "Quality Management", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Ensuring products and services consistently meet customer requirements and expectations." },
+          { name: "Trunk", type: "trunk", detail: "Total Quality Management (TQM) involves everyone in continuous improvement. ISO 9001 provides a quality management system framework." },
+          { name: "Branches", type: "branches", detail: "Statistical process control (SPC), quality function deployment (QFD), and supplier quality management are key tools." },
+          { name: "Leaves", type: "leaves", detail: "Cost of quality framework: prevention costs + appraisal costs + internal/external failure costs. Investing in prevention reduces total cost." }
+        ]},
+        { name: "Production Scheduling", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Allocating resources and sequencing jobs to meet demand efficiently." },
+          { name: "Trunk", type: "trunk", detail: "Master Production Schedule (MPS) drives Material Requirements Planning (MRP), which drives shop floor scheduling." },
+          { name: "Branches", type: "branches", detail: "Advanced Planning and Scheduling (APS) systems use optimization algorithms to consider constraints simultaneously." },
+          { name: "Leaves", type: "leaves", detail: "Digital twins of production lines enable simulation and real-time schedule optimization." }
+        ]}
+      ]
+    },
+    {
+      name: "F \u2014 Technology & Digitalization",
+      type: "section",
+      sectionIndex: 5,
+      children: [
+        { name: "ERP Systems", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Enterprise Resource Planning integrates all business processes into a single system." },
+          { name: "Trunk", type: "trunk", detail: "Core modules: finance, HR, manufacturing, supply chain, procurement, sales. SAP, Oracle, and Microsoft Dynamics lead the market." },
+          { name: "Branches", type: "branches", detail: "Cloud ERP enables faster deployment, lower upfront costs, and automatic updates. Two-tier ERP supports global + local needs." },
+          { name: "Leaves", type: "leaves", detail: "Intelligent ERP embeds AI/ML for predictive analytics, process automation, and conversational interfaces." }
+        ]},
+        { name: "IoT in Supply Chain", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Internet of Things connects physical assets to digital networks via sensors, RFID, and GPS." },
+          { name: "Trunk", type: "trunk", detail: "Applications: real-time tracking, condition monitoring (temperature, humidity), predictive maintenance, and smart warehousing." },
+          { name: "Branches", type: "branches", detail: "Edge computing processes IoT data locally for faster response. Digital twins create virtual replicas of physical supply chain assets." },
+          { name: "Leaves", type: "leaves", detail: "Cold chain monitoring ensures pharmaceutical and food safety compliance with continuous temperature logging and alerts." }
+        ]},
+        { name: "Blockchain in SCM", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Distributed ledger technology providing immutable, transparent records of supply chain transactions." },
+          { name: "Trunk", type: "trunk", detail: "Use cases: provenance tracking, counterfeit prevention, trade finance, and automated compliance documentation." },
+          { name: "Branches", type: "branches", detail: "Enterprise blockchain applications demonstrate value in food safety and shipping traceability." },
+          { name: "Leaves", type: "leaves", detail: "Challenges: scalability, energy consumption, interoperability between platforms, and achieving critical mass of participants." }
+        ]},
+        { name: "AI & Machine Learning", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Artificial intelligence enables computers to perform tasks that normally require human intelligence." },
+          { name: "Trunk", type: "trunk", detail: "SCM applications: demand forecasting, route optimization, quality inspection, supplier risk assessment, and autonomous vehicles." },
+          { name: "Branches", type: "branches", detail: "Natural language processing powers chatbots for order tracking. Computer vision automates warehouse operations and quality control." },
+          { name: "Leaves", type: "leaves", detail: "Generative AI creates supply chain simulations and scenario plans. Reinforcement learning optimizes dynamic pricing and inventory policies." }
+        ]},
+        { name: "Robotic Process Automation", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "RPA uses software robots to automate repetitive, rule-based tasks across supply chain processes." },
+          { name: "Trunk", type: "trunk", detail: "Common automations: invoice processing, order entry, shipment tracking updates, and inventory reconciliation." },
+          { name: "Branches", type: "branches", detail: "Intelligent automation combines RPA with AI for handling exceptions and making judgments on unstructured data." },
+          { name: "Leaves", type: "leaves", detail: "Hyperautomation orchestrates RPA, AI, process mining, and low-code tools to automate end-to-end supply chain workflows." }
+        ]},
+        { name: "Digital Twins", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Virtual replicas of physical supply chain assets, processes, and networks that simulate real-world behavior." },
+          { name: "Trunk", type: "trunk", detail: "Enable what-if analysis, scenario planning, and optimization without disrupting actual operations." },
+          { name: "Branches", type: "branches", detail: "Supply chain digital twins model entire networks \u2014 testing disruption responses, capacity changes, and new supplier options." },
+          { name: "Leaves", type: "leaves", detail: "Real-time digital twins continuously sync with live data for dynamic optimization and autonomous decision-making." }
+        ]}
+      ]
+    },
+    {
+      name: "G \u2014 Risk & Resilience",
+      type: "section",
+      sectionIndex: 6,
+      children: [
+        { name: "Supply Chain Risks", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Risks that can disrupt the flow of materials, information, or finances in the supply chain." },
+          { name: "Trunk", type: "trunk", detail: "Categories: operational (quality, capacity), financial (currency, credit), strategic (competitive, regulatory), and hazard (natural disasters, pandemics)." },
+          { name: "Branches", type: "branches", detail: "Geopolitical risks (trade wars, sanctions), cyber risks (ransomware, data breaches), and climate risks (extreme weather) are increasingly prominent." },
+          { name: "Leaves", type: "leaves", detail: "Risk quantification uses probability \u00d7 impact matrices, Monte Carlo simulation, and value-at-risk (VaR) models." }
+        ]},
+        { name: "Risk Mitigation", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Strategies to reduce the likelihood or impact of supply chain disruptions." },
+          { name: "Trunk", type: "trunk", detail: "Common strategies: dual sourcing, safety stock, supplier audits, business continuity planning, and insurance." },
+          { name: "Branches", type: "branches", detail: "Supply chain mapping reveals hidden dependencies \u2014 tier 2 and tier 3 suppliers often concentrate risk." },
+          { name: "Leaves", type: "leaves", detail: "AI-powered risk monitoring scans news, weather, financial, and social media data for early warning signals." }
+        ]},
+        { name: "Business Continuity Planning", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Preparing plans to maintain critical supply chain functions during and after a disruption." },
+          { name: "Trunk", type: "trunk", detail: "BCP elements: risk assessment, business impact analysis, recovery strategies, plan development, and testing/exercises." },
+          { name: "Branches", type: "branches", detail: "Recovery time objectives (RTO) and recovery point objectives (RPO) define acceptable downtime and data loss." },
+          { name: "Leaves", type: "leaves", detail: "Pandemic planning became a critical BCP component \u2014 diversified sourcing, remote operations, and demand replanning capabilities." }
+        ]},
+        { name: "Supply Chain Resilience", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "The ability to anticipate, prepare for, respond to, and recover from disruptions." },
+          { name: "Trunk", type: "trunk", detail: "Resilience dimensions: flexibility (adapt quickly), velocity (recover fast), visibility (see problems early), and collaboration (work together)." },
+          { name: "Branches", type: "branches", detail: "Building resilience often requires trade-offs with efficiency \u2014 redundancy costs money but provides protection." },
+          { name: "Leaves", type: "leaves", detail: "Antifragile supply chains don't just survive disruptions \u2014 they get stronger through stress testing and learning." }
+        ]},
+        { name: "Cybersecurity in SCM", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Protecting supply chain systems, data, and networks from cyber threats." },
+          { name: "Trunk", type: "trunk", detail: "Threats: ransomware, phishing, supply chain attacks, data breaches, and IoT device vulnerabilities." },
+          { name: "Branches", type: "branches", detail: "Defense layers: network segmentation, multi-factor authentication, encryption, supplier security assessments, and incident response plans." },
+          { name: "Leaves", type: "leaves", detail: "Zero-trust architecture and software bill of materials (SBOM) represent emerging best practices for supply chain cybersecurity." }
+        ]}
+      ]
+    },
+    {
+      name: "H \u2014 Sustainability & Ethics",
+      type: "section",
+      sectionIndex: 7,
+      children: [
+        { name: "Green Supply Chain", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Integrating environmental considerations into every stage of the supply chain." },
+          { name: "Trunk", type: "trunk", detail: "Key areas: green procurement, eco-design, clean production, green logistics, and end-of-life management." },
+          { name: "Branches", type: "branches", detail: "Carbon footprint measurement across Scope 1 (direct), Scope 2 (energy), and Scope 3 (supply chain) emissions." },
+          { name: "Leaves", type: "leaves", detail: "Science-based targets (SBTi) and net-zero commitments drive aggressive supply chain decarbonization programs." }
+        ]},
+        { name: "Circular Economy", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "An economic model that eliminates waste by keeping materials in use through reuse, repair, and recycling." },
+          { name: "Trunk", type: "trunk", detail: "Contrast with linear economy (take-make-dispose). Circular design considers the full lifecycle from material selection to end-of-life." },
+          { name: "Branches", type: "branches", detail: "Business models: product-as-a-service, sharing platforms, refurbishment programs, and material marketplaces." },
+          { name: "Leaves", type: "leaves", detail: "Digital product passports track material composition and recycling instructions throughout the product lifecycle." }
+        ]},
+        { name: "ESG Reporting", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Environmental, Social, and Governance reporting measures and discloses sustainability performance." },
+          { name: "Trunk", type: "trunk", detail: "Frameworks: GRI (Global Reporting Initiative), SASB, TCFD, and the emerging ISSB standards." },
+          { name: "Branches", type: "branches", detail: "Supply chain ESG extends reporting to suppliers \u2014 requiring carbon disclosure, labor audits, and governance assessments." },
+          { name: "Leaves", type: "leaves", detail: "EU regulations (CSRD, CSDDD) mandate supply chain due diligence and sustainability reporting for large companies." }
+        ]},
+        { name: "Social Responsibility", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Ensuring supply chain practices respect human rights, fair labor, and community welfare." },
+          { name: "Trunk", type: "trunk", detail: "Key issues: forced labor, child labor, living wages, working conditions, diversity, and community impact." },
+          { name: "Branches", type: "branches", detail: "UN Guiding Principles on Business and Human Rights provides the framework for supply chain human rights due diligence." },
+          { name: "Leaves", type: "leaves", detail: "Worker voice technologies (anonymous reporting apps) and blockchain-verified fair trade enable greater transparency." }
+        ]},
+        { name: "Sustainable Packaging", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Designing packaging that minimizes environmental impact while protecting products." },
+          { name: "Trunk", type: "trunk", detail: "Strategies: reduce material use, use recycled content, design for recyclability, and eliminate single-use plastics." },
+          { name: "Branches", type: "branches", detail: "Innovations: mushroom-based packaging, seaweed films, reusable shipping containers, and right-sized packaging algorithms." },
+          { name: "Leaves", type: "leaves", detail: "Extended Producer Responsibility (EPR) laws make companies financially responsible for packaging end-of-life management." }
+        ]}
+      ]
+    },
+    {
+      name: "I \u2014 Global Trade & Compliance",
+      type: "section",
+      sectionIndex: 8,
+      children: [
+        { name: "International Trade", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "The exchange of goods and services across international borders, governed by trade agreements and regulations." },
+          { name: "Trunk", type: "trunk", detail: "Key concepts: tariffs, quotas, trade agreements (USMCA, EU Single Market), Incoterms, and letters of credit." },
+          { name: "Branches", type: "branches", detail: "Free trade zones, bonded warehouses, and foreign trade zones reduce duty costs for international operations." },
+          { name: "Leaves", type: "leaves", detail: "Digital trade facilitation \u2014 single window systems and electronic certificates of origin \u2014 streamlines cross-border commerce." }
+        ]},
+        { name: "Customs & Compliance", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Adhering to import/export laws, customs regulations, and trade compliance requirements." },
+          { name: "Trunk", type: "trunk", detail: "Key processes: customs classification (HS codes), valuation, country of origin determination, and duty calculation." },
+          { name: "Branches", type: "branches", detail: "Trusted trader programs (C-TPAT, AEO) provide expedited customs clearance for compliant companies." },
+          { name: "Leaves", type: "leaves", detail: "Automated broker interfaces and AI-powered classification tools accelerate customs compliance and reduce errors." }
+        ]},
+        { name: "Trade Finance", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Financial instruments that facilitate international trade \u2014 reducing risk for buyers and sellers." },
+          { name: "Trunk", type: "trunk", detail: "Instruments: letters of credit, documentary collections, trade credit insurance, and supply chain finance programs." },
+          { name: "Branches", type: "branches", detail: "Supply chain finance (reverse factoring) lets suppliers get early payment using the buyer's stronger credit rating." },
+          { name: "Leaves", type: "leaves", detail: "Blockchain-based trade finance platforms digitize letters of credit and reduce processing time from days to hours." }
+        ]},
+        { name: "Regulatory Compliance", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Meeting legal and regulatory requirements across all jurisdictions where the supply chain operates." },
+          { name: "Trunk", type: "trunk", detail: "Key areas: product safety (FDA, CE marking), environmental (REACH, RoHS), labor, data privacy (GDPR), and anti-corruption (FCPA)." },
+          { name: "Branches", type: "branches", detail: "Compliance management systems track regulatory changes, automate reporting, and manage supplier certifications." },
+          { name: "Leaves", type: "leaves", detail: "RegTech solutions use AI to monitor regulatory changes across jurisdictions and assess supply chain compliance impact." }
+        ]},
+        { name: "Sanctions & Export Controls", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Government restrictions on trade with certain countries, entities, or individuals for national security or foreign policy reasons." },
+          { name: "Trunk", type: "trunk", detail: "Key frameworks: OFAC sanctions (US), EU sanctions, denied party screening, and export control classification (EAR, ITAR)." },
+          { name: "Branches", type: "branches", detail: "Screening must cover all parties \u2014 customers, suppliers, intermediaries, banks, and end-users \u2014 across multiple government lists." },
+          { name: "Leaves", type: "leaves", detail: "Automated denied party screening tools check transactions in real-time against global watchlists." }
+        ]}
+      ]
+    },
+    {
+      name: "J \u2014 Strategy & Performance",
+      type: "section",
+      sectionIndex: 9,
+      children: [
+        { name: "Supply Chain Strategy", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Aligning supply chain design and capabilities with overall business strategy." },
+          { name: "Trunk", type: "trunk", detail: "Strategic fit: matching supply chain responsiveness to demand uncertainty. Efficient chains for predictable demand, agile chains for volatile demand." },
+          { name: "Branches", type: "branches", detail: "Supply chain segmentation creates different fulfillment paths for different product/customer combinations." },
+          { name: "Leaves", type: "leaves", detail: "Dynamic supply chain strategy adjusts in real-time based on market conditions, leveraging digital capabilities." }
+        ]},
+        { name: "KPIs & Metrics", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Quantifiable measures used to evaluate supply chain performance against objectives." },
+          { name: "Trunk", type: "trunk", detail: "Key metrics: perfect order rate, on-time delivery, inventory turns, cash-to-cash cycle time, and total supply chain cost." },
+          { name: "Branches", type: "branches", detail: "Balanced scorecard approach measures financial, customer, process, and learning/growth perspectives." },
+          { name: "Leaves", type: "leaves", detail: "Real-time dashboards and control towers provide continuous visibility into KPIs across the end-to-end supply chain." }
+        ]},
+        { name: "S&OP Process", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Sales & Operations Planning aligns demand plans with supply capabilities on a monthly cycle." },
+          { name: "Trunk", type: "trunk", detail: "Steps: data gathering, demand review, supply review, pre-S&OP meeting, executive S&OP meeting, and plan execution." },
+          { name: "Branches", type: "branches", detail: "Integrated Business Planning (IBP) extends S&OP to include financial planning, portfolio management, and strategic alignment." },
+          { name: "Leaves", type: "leaves", detail: "AI-driven S&OP automates scenario generation, recommendation engines, and continuous planning cycles." }
+        ]},
+        { name: "Benchmarking", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Comparing supply chain performance against industry peers or best-in-class companies." },
+          { name: "Trunk", type: "trunk", detail: "Types: internal (across divisions), competitive (vs. rivals), functional (vs. best practices), and generic (cross-industry)." },
+          { name: "Branches", type: "branches", detail: "Industry benchmarking studies provide industry-level performance data for comparison." },
+          { name: "Leaves", type: "leaves", detail: "Digital benchmarking platforms enable real-time, anonymized performance comparison across supply chain networks." }
+        ]},
+        { name: "Cost-to-Serve Analysis", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Understanding the true cost of serving each customer or product through the supply chain." },
+          { name: "Trunk", type: "trunk", detail: "Activity-based costing (ABC) assigns costs to activities \u2014 warehousing, transportation, order processing, returns \u2014 per customer/product." },
+          { name: "Branches", type: "branches", detail: "Cost-to-serve reveals that some customers are unprofitable, enabling service-level differentiation and pricing adjustments." },
+          { name: "Leaves", type: "leaves", detail: "Continuous cost-to-serve monitoring enables dynamic supply chain decisions \u2014 routing, fulfillment source, and delivery method." }
+        ]},
+        { name: "Outsourcing Decisions", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Deciding which supply chain activities to perform in-house vs. delegate to external partners." },
+          { name: "Trunk", type: "trunk", detail: "Framework: core competency analysis + transaction cost economics \u2014 outsource non-core activities with low asset specificity." },
+          { name: "Branches", type: "branches", detail: "Outsourcing risks: loss of control, quality issues, IP leakage, and hidden costs. Governance mechanisms mitigate these risks." },
+          { name: "Leaves", type: "leaves", detail: "Reshoring trend: some companies bring outsourced activities back in-house for better control, speed, and resilience." }
+        ]}
+      ]
+    },
+    {
+      name: "K \u2014 Emerging Trends",
+      type: "section",
+      sectionIndex: 10,
+      children: [
+        { name: "Supply Chain 4.0", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "The application of Industry 4.0 technologies to transform supply chain operations." },
+          { name: "Trunk", type: "trunk", detail: "Key technologies: IoT, AI/ML, robotics, 3D printing, blockchain, digital twins, and autonomous vehicles." },
+          { name: "Branches", type: "branches", detail: "Autonomous supply chains make decisions without human intervention \u2014 self-healing, self-optimizing, and self-configuring." },
+          { name: "Leaves", type: "leaves", detail: "Cognitive supply chains combine all technologies to sense, learn, predict, and act \u2014 approaching artificial general supply chain intelligence." }
+        ]},
+        { name: "Autonomous Vehicles & Drones", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Self-driving trucks, delivery drones, and autonomous warehouse robots transforming logistics." },
+          { name: "Trunk", type: "trunk", detail: "Autonomous trucks address driver shortages and enable 24/7 operations. Drones enable rapid delivery to remote areas." },
+          { name: "Branches", type: "branches", detail: "Current state: Level 4 autonomy for trucking (hub-to-hub), commercial drone delivery in limited zones, widespread warehouse robots." },
+          { name: "Leaves", type: "leaves", detail: "Regulatory frameworks, insurance models, and public acceptance remain key challenges for widespread autonomous logistics." }
+        ]},
+        { name: "3D Printing / Additive Manufacturing", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Creating objects layer by layer from digital models \u2014 potentially transforming manufacturing and spare parts logistics." },
+          { name: "Trunk", type: "trunk", detail: "SCM impact: on-demand production reduces inventory, localized manufacturing shortens supply chains, mass customization becomes feasible." },
+          { name: "Branches", type: "branches", detail: "Applications: spare parts on demand, rapid prototyping, custom medical devices, and aerospace components." },
+          { name: "Leaves", type: "leaves", detail: "Digital inventory \u2014 storing designs instead of physical parts \u2014 could eliminate billions in spare parts inventory globally." }
+        ]},
+        { name: "Omnichannel Fulfillment", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Seamlessly fulfilling customer orders across all channels \u2014 online, in-store, mobile, social." },
+          { name: "Trunk", type: "trunk", detail: "Capabilities: buy online pick up in store (BOPIS), ship from store, curbside pickup, and endless aisle." },
+          { name: "Branches", type: "branches", detail: "Unified inventory visibility across all channels enables optimal fulfillment source selection based on cost and speed." },
+          { name: "Leaves", type: "leaves", detail: "AI-driven order orchestration dynamically routes each order to the optimal fulfillment point in real-time." }
+        ]},
+        { name: "Reshoring & Nearshoring", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Moving production closer to end markets \u2014 back to home country (reshoring) or nearby regions (nearshoring)." },
+          { name: "Trunk", type: "trunk", detail: "Drivers: supply chain disruptions, rising overseas costs, automation reducing labor cost advantage, and government incentives." },
+          { name: "Branches", type: "branches", detail: "Total cost analysis considers not just labor but also logistics, inventory, quality, IP risk, speed-to-market, and carbon footprint." },
+          { name: "Leaves", type: "leaves", detail: "Friend-shoring \u2014 sourcing from geopolitically aligned nations \u2014 adds a political dimension to sourcing strategy." }
+        ]},
+        { name: "Predictive & Prescriptive Analytics", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Using data and algorithms to predict future outcomes and recommend optimal actions." },
+          { name: "Trunk", type: "trunk", detail: "Predictive: what will happen (demand, disruptions, quality). Prescriptive: what should we do about it (optimal decisions)." },
+          { name: "Branches", type: "branches", detail: "Applications: predictive maintenance, demand sensing, risk prediction, dynamic pricing, and optimal inventory positioning." },
+          { name: "Leaves", type: "leaves", detail: "Autonomous decision-making systems act on prescriptive recommendations without human intervention for routine supply chain decisions." }
+        ]},
+        { name: "Collaborative Supply Chains", type: "topic", children: [
+          { name: "Roots", type: "roots", detail: "Supply chain partners sharing information, resources, and risks for mutual benefit." },
+          { name: "Trunk", type: "trunk", detail: "Models: CPFR (Collaborative Planning, Forecasting, and Replenishment), VMI, co-managed inventory, and joint business planning." },
+          { name: "Branches", type: "branches", detail: "Data sharing platforms and multi-enterprise supply chain networks enable real-time collaboration across partners." },
+          { name: "Leaves", type: "leaves", detail: "Supply chain ecosystems evolve from bilateral relationships to interconnected networks with shared platforms and data." }
+        ]}
+      ]
+    }
+  ]
+};
+
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION COLORS (11 distinct)
+// ═══════════════════════════════════════════════════════════════
+
+const sectionColors = [
+  '#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f',
+  '#edc948', '#b07aa1', '#ff9da7', '#9c755f', '#bab0ac', '#6ba3d6'
+];
+
+function getSectionColor(d) {
+  let node = d;
+  while (node) {
+    if (node.data.type === 'section') return sectionColors[node.data.sectionIndex] || '#888';
+    node = node.parent;
+  }
+  return '#4fd1a0';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TREE SETUP
+// ═══════════════════════════════════════════════════════════════
+
+const container = document.getElementById('treeContainer');
+const svg = d3.select('#treeSvg');
+const g = svg.append('g');
+
+const treemap = d3.tree().nodeSize([30, 300]);
+
+const root = d3.hierarchy(treeData);
+root.x0 = 0;
+root.y0 = 0;
+
+// Initially collapse everything except root's direct children
+root.children.forEach(collapse);
+
+function collapse(d) {
+  if (d.children) {
+    d._children = d.children;
+    d._children.forEach(collapse);
+    d.children = null;
+  }
+}
+
+function expandAll(d) {
+  if (d._children) {
+    d.children = d._children;
+    d._children = null;
+  }
+  if (d.children) d.children.forEach(expandAll);
+}
+
+function collapseAll(d) {
+  if (d.children) {
+    d._children = d.children;
+    d.children = null;
+  }
+  if (d._children) d._children.forEach(collapseAll);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ZOOM
+// ═══════════════════════════════════════════════════════════════
+
+let currentTransform = d3.zoomIdentity;
+
+const zoomBehavior = d3.zoom()
+  .scaleExtent([0.1, 3])
+  .on('zoom', (event) => {
+    currentTransform = event.transform;
+    g.attr('transform', event.transform);
+    document.getElementById('zoomLevel').textContent = Math.round(event.transform.k * 100) + '%';
+  });
+
+svg.call(zoomBehavior);
+
+document.getElementById('zoomIn').addEventListener('click', () => {
+  svg.transition().duration(300).call(zoomBehavior.scaleBy, 1.3);
+});
+document.getElementById('zoomOut').addEventListener('click', () => {
+  svg.transition().duration(300).call(zoomBehavior.scaleBy, 0.7);
+});
+document.getElementById('zoomFit').addEventListener('click', fitToScreen);
+
+function fitToScreen() {
+  const bounds = g.node().getBBox();
+  if (!bounds.width || !bounds.height) return;
+  const fullW = container.clientWidth;
+  const fullH = container.clientHeight;
+  const midX = bounds.x + bounds.width / 2;
+  const midY = bounds.y + bounds.height / 2;
+  const scale = Math.min(fullW / (bounds.width + 120), fullH / (bounds.height + 120), 1.5);
+  const transform = d3.zoomIdentity
+    .translate(fullW / 2 - midX * scale, fullH / 2 - midY * scale)
+    .scale(scale);
+  svg.transition().duration(750).call(zoomBehavior.transform, transform);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NODE SHAPES
+// ═══════════════════════════════════════════════════════════════
+
+function drawNodeShape(selection) {
+  selection.each(function(d) {
+    const el = d3.select(this);
+    el.selectAll('*').remove();
+    const type = d.data.type;
+    const secColor = getSectionColor(d);
+
+    if (type === 'root') {
+      el.append('circle').attr('r', 16).attr('fill', '#4fd1a0').attr('stroke', '#2a9d6e').attr('stroke-width', 2.5);
+    } else if (type === 'section') {
+      el.append('circle').attr('r', 12).attr('fill', secColor).attr('stroke', 'none').attr('opacity', 0.9);
+    } else if (type === 'topic') {
+      el.append('circle').attr('r', 7).attr('fill', 'none').attr('stroke', secColor).attr('stroke-width', 2).attr('opacity', 0.85);
+    } else if (type === 'roots') {
+      el.append('polygon').attr('points', '0,-9 9,0 0,9 -9,0').attr('fill', '#8B6914').attr('stroke', secColor).attr('stroke-width', 1.5).attr('opacity', 0.85);
+    } else if (type === 'trunk') {
+      el.append('rect').attr('x', -7).attr('y', -7).attr('width', 14).attr('height', 14).attr('rx', 2).attr('fill', '#6B4226').attr('stroke', secColor).attr('stroke-width', 1.5).attr('opacity', 0.85);
+    } else if (type === 'branches') {
+      el.append('polygon').attr('points', '0,-9 9,7 -9,7').attr('fill', '#2d8a4e').attr('stroke', secColor).attr('stroke-width', 1.5).attr('opacity', 0.85);
+    } else if (type === 'leaves') {
+      el.append('circle').attr('r', 7).attr('fill', '#48c774').attr('stroke', secColor).attr('stroke-width', 1.5).attr('opacity', 0.85);
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UPDATE (core render function)
+// ═══════════════════════════════════════════════════════════════
+
+let i = 0;
+const duration = 750;
+
+function update(source) {
+  const treeDataLayout = treemap(root);
+  const nodes = treeDataLayout.descendants();
+  const links = treeDataLayout.links();
+
+  // Horizontal layout: use depth for x-position
+  nodes.forEach(d => { d.y2 = d.depth * 300; });
+
+  // ── Links ──
+  const link = g.selectAll('path.link').data(links, d => d.target.id || (d.target.id = ++i));
+
+  const linkEnter = link.enter().insert('path', 'g')
+    .attr('class', 'link')
+    .attr('d', () => {
+      const o = { x: source.x0, y: source.y0 };
+      return diagonal(o, o);
+    });
+
+  const linkUpdate = linkEnter.merge(link);
+  linkUpdate.transition().duration(duration)
+    .attr('d', d => diagonal(d.source, d.target));
+
+  link.exit().transition().duration(duration)
+    .attr('d', () => {
+      const o = { x: source.x, y: source.y };
+      return diagonal(o, o);
+    }).remove();
+
+  // ── Nodes ──
+  const node = g.selectAll('g.node').data(nodes, d => d.id || (d.id = ++i));
+
+  const nodeEnter = node.enter().append('g')
+    .attr('class', d => 'node ' + d.data.type)
+    .attr('transform', () => 'translate(' + source.y0 + ',' + source.x0 + ')')
+    .on('click', (event, d) => {
+      event.stopPropagation();
+      if (d.children || d._children) {
+        toggle(d);
+        update(d);
+      }
+      showDetail(d);
+    })
+    .on('mouseenter', (event, d) => highlightPath(d, true))
+    .on('mouseleave', (event, d) => highlightPath(d, false));
+
+  nodeEnter.append('g').attr('class', 'node-shape');
+
+  nodeEnter.append('text')
+    .attr('dy', '.35em')
+    .attr('x', d => (d.data.type === 'root' ? 24 : d.data.type === 'section' ? 20 : 16))
+    .attr('class', d => d.data.type === 'section' ? 'section-label' : d.data.type === 'root' ? 'root-label' : '')
+    .text(d => d.data.name);
+
+  nodeEnter.append('text')
+    .attr('class', 'collapse-indicator')
+    .attr('dy', '.35em')
+    .attr('text-anchor', 'middle');
+
+  const nodeUpdate = nodeEnter.merge(node);
+
+  nodeUpdate.transition().duration(duration)
+    .attr('transform', d => 'translate(' + (d.y2 || d.y) + ',' + d.x + ')');
+
+  nodeUpdate.select('.node-shape').call(drawNodeShape);
+
+  nodeUpdate.select('.collapse-indicator')
+    .text(d => d._children ? '+' : '');
+
+  node.exit().transition().duration(duration)
+    .attr('transform', () => 'translate(' + (source.y2 || source.y) + ',' + source.x + ')')
+    .remove();
+
+  nodes.forEach(d => { d.x0 = d.x; d.y0 = d.y2 || d.y; });
+}
+
+function diagonal(s, t) {
+  const sy = s.y2 !== undefined ? s.y2 : s.y;
+  const ty = t.y2 !== undefined ? t.y2 : t.y;
+  return 'M' + sy + ',' + s.x + 'C' + ((sy + ty) / 2) + ',' + s.x + ' ' + ((sy + ty) / 2) + ',' + t.x + ' ' + ty + ',' + t.x;
+}
+
+function toggle(d) {
+  if (d.children) {
+    d._children = d.children;
+    d.children = null;
+  } else if (d._children) {
+    d.children = d._children;
+    d._children = null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HIGHLIGHT PATH ON HOVER
+// ═══════════════════════════════════════════════════════════════
+
+function highlightPath(d, on) {
+  const ancestors = d.ancestors();
+  const ancestorSet = new Set(ancestors);
+  g.selectAll('path.link')
+    .classed('highlighted', function(l) {
+      return on && ancestorSet.has(l.source) && ancestorSet.has(l.target);
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DETAIL PANEL (safe DOM construction — no innerHTML)
+// ═══════════════════════════════════════════════════════════════
+
+const detailPanel = document.getElementById('detailPanel');
+const detailBreadcrumb = document.getElementById('detailBreadcrumb');
+const detailType = document.getElementById('detailType');
+const detailTitle = document.getElementById('detailTitle');
+const detailBody = document.getElementById('detailBody');
+const detailClose = document.getElementById('detailClose');
+
+detailClose.addEventListener('click', () => detailPanel.classList.remove('open'));
+
+function showDetail(d) {
+  detailPanel.classList.add('open');
+
+  // Breadcrumb — built with safe DOM methods
+  while (detailBreadcrumb.firstChild) detailBreadcrumb.removeChild(detailBreadcrumb.firstChild);
+  const path = d.ancestors().reverse();
+  path.forEach((p, idx) => {
+    const span = document.createElement('span');
+    if (idx === path.length - 1) span.className = 'current';
+    const shortName = p.data.name.length > 20 ? p.data.name.substring(0, 20) + '...' : p.data.name;
+    span.textContent = shortName;
+    detailBreadcrumb.appendChild(span);
+    if (idx < path.length - 1) {
+      const sep = document.createElement('span');
+      sep.className = 'sep';
+      sep.textContent = '\u203a';
+      detailBreadcrumb.appendChild(sep);
+    }
+  });
+
+  // Type badge
+  const typeColors = {
+    root: '#4fd1a0', section: getSectionColor(d), topic: getSectionColor(d),
+    roots: '#8B6914', trunk: '#6B4226', branches: '#2d8a4e', leaves: '#48c774'
+  };
+  const tc = typeColors[d.data.type] || '#888';
+  detailType.style.background = tc + '22';
+  detailType.style.color = tc;
+  detailType.textContent = d.data.type.charAt(0).toUpperCase() + d.data.type.slice(1);
+
+  // Title
+  detailTitle.textContent = d.data.name;
+
+  // Body — built with safe DOM methods
+  while (detailBody.firstChild) detailBody.removeChild(detailBody.firstChild);
+
+  if (d.data.detail) {
+    const p = document.createElement('p');
+    p.textContent = d.data.detail;
+    detailBody.appendChild(p);
+  }
+
+  // Show children info
+  const allChildren = d.children || d._children;
+  if (allChildren && allChildren.length > 0) {
+    const childrenDiv = document.createElement('div');
+    childrenDiv.className = 'detail-children';
+
+    const h4 = document.createElement('h4');
+    h4.textContent = 'Contains';
+    childrenDiv.appendChild(h4);
+
+    allChildren.forEach(c => {
+      const item = document.createElement('div');
+      item.className = 'detail-child-item';
+
+      const typeLabel = document.createElement('div');
+      typeLabel.className = 'child-type';
+      typeLabel.style.color = typeColors[c.data.type] || '#888';
+      typeLabel.textContent = c.data.type;
+      item.appendChild(typeLabel);
+
+      const nameText = document.createTextNode(c.data.name);
+      item.appendChild(nameText);
+
+      if (c.data.detail) {
+        const preview = document.createElement('div');
+        preview.className = 'child-preview';
+        preview.textContent = c.data.detail.substring(0, 80) + '...';
+        item.appendChild(preview);
+      }
+
+      childrenDiv.appendChild(item);
+    });
+
+    detailBody.appendChild(childrenDiv);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════════════════════════════
+
+const searchInput = document.getElementById('searchInput');
+const searchClear = document.getElementById('searchClear');
+const searchCount = document.getElementById('searchCount');
+
+searchInput.addEventListener('input', debounce(handleSearch, 200));
+searchClear.addEventListener('click', () => {
+  searchInput.value = '';
+  searchClear.classList.remove('visible');
+  searchCount.textContent = '';
+  clearSearch();
+});
+
+function handleSearch() {
+  const query = searchInput.value.trim().toLowerCase();
+  searchClear.classList.toggle('visible', query.length > 0);
+
+  if (query.length < 2) {
+    searchCount.textContent = '';
+    clearSearch();
+    return;
+  }
+
+  // Collapse everything first
+  root.children.forEach(collapseAll);
+
+  // Find matching nodes
+  const matches = [];
+  root.descendants().forEach(d => {
+    const nameMatch = d.data.name.toLowerCase().includes(query);
+    const detailMatch = d.data.detail && d.data.detail.toLowerCase().includes(query);
+    d._searchMatch = nameMatch || detailMatch;
+    if (d._searchMatch) matches.push(d);
+  });
+
+  // Expand paths to matches
+  matches.forEach(m => {
+    const ancestors = m.ancestors();
+    ancestors.forEach(a => {
+      if (a._children) {
+        a.children = a._children;
+        a._children = null;
+      }
+    });
+  });
+
+  searchCount.textContent = matches.length + ' match' + (matches.length !== 1 ? 'es' : '');
+
+  update(root);
+
+  // Apply match highlighting after DOM update
+  setTimeout(() => {
+    g.selectAll('g.node').classed('search-match', d => d._searchMatch);
+  }, duration + 50);
+}
+
+function clearSearch() {
+  root.descendants().forEach(d => d._searchMatch = false);
+  g.selectAll('g.node').classed('search-match', false);
+  update(root);
+}
+
+function debounce(fn, ms) {
+  let timer;
+  return function() {
+    const args = arguments;
+    const context = this;
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(context, args), ms);
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXPAND / COLLAPSE ALL
+// ═══════════════════════════════════════════════════════════════
+
+document.getElementById('btnExpand').addEventListener('click', () => {
+  expandAll(root);
+  update(root);
+  setTimeout(fitToScreen, duration + 100);
+});
+
+document.getElementById('btnCollapse').addEventListener('click', () => {
+  root.children.forEach(collapseAll);
+  update(root);
+  setTimeout(fitToScreen, duration + 100);
+});
+
+// ═══════════════════════════════════════════════════════════════
+// THEME TOGGLE
+// ═══════════════════════════════════════════════════════════════
+
+const btnTheme = document.getElementById('btnTheme');
+const themeLabel = document.getElementById('themeLabel');
+
+// Restore preference
+const savedTheme = localStorage.getItem('scm-tree-theme');
+if (savedTheme === 'light') {
+  document.body.classList.replace('dark', 'light');
+  themeLabel.textContent = 'Dark';
+}
+
+btnTheme.addEventListener('click', () => {
+  const isLight = document.body.classList.contains('light');
+  document.body.classList.replace(isLight ? 'light' : 'dark', isLight ? 'dark' : 'light');
+  themeLabel.textContent = isLight ? 'Light' : 'Dark';
+  localStorage.setItem('scm-tree-theme', isLight ? 'dark' : 'light');
+  update(root);
+});
+
+// ═══════════════════════════════════════════════════════════════
+// INITIAL RENDER
+// ═══════════════════════════════════════════════════════════════
+
+update(root);
+
+// Center the tree after initial render
+setTimeout(() => {
+  fitToScreen();
+}, 100);
+
+</script>
+</body>
+</html>
