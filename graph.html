@@ -672,6 +672,109 @@ body.quiz-mode .zoom-controls { left: 324px; }
   border-color: var(--accent);
 }
 
+/* Mastery legend */
+.mastery-legend {
+  position: fixed;
+  top: 80px;
+  right: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  z-index: 1000;
+  font-size: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+  display: none;
+}
+.mastery-legend h4 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.mastery-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.mastery-legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.mastery-legend-swatch.unseen {
+  background: var(--bg-tertiary);
+  border: 2px dashed var(--text-muted);
+}
+.mastery-legend-swatch.weak { background: #e15759; }
+.mastery-legend-swatch.learning { background: #f28e2b; }
+.mastery-legend-swatch.mastered { background: #66bb6a; }
+.mastery-legend-swatch.expert {
+  background: #4caf7a;
+  box-shadow: 0 0 6px 2px rgba(255,215,0,.5);
+  border: 2px solid #ffd700;
+}
+
+/* Smart quiz toggle in setup */
+.quiz-smart-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+.quiz-mastery-summary {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 6px 0 2px;
+}
+.quiz-mastery-summary .weak-count { color: #e15759; font-weight: 600; }
+.quiz-mastery-summary .mastered-count { color: #4caf7a; font-weight: 600; }
+.quiz-mastery-summary .unseen-count { color: var(--text-muted); font-weight: 600; }
+
+/* Mastery delta in results */
+.quiz-mastery-delta {
+  text-align: center;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.quiz-mastery-delta .improved { color: #4caf7a; font-weight: 600; }
+.quiz-mastery-delta .new-tested { color: #76b7b2; font-weight: 600; }
+
+/* Cumulative mastery bar */
+.quiz-breakdown-mastery-bar {
+  height: 3px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  margin-top: 2px;
+  overflow: hidden;
+}
+.quiz-breakdown-mastery-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  width: 0;
+  transition: width 0.8s ease;
+}
+
+@media (max-width: 768px) {
+  .mastery-legend {
+    top: auto;
+    bottom: 80px;
+    right: 8px;
+    padding: 8px 10px;
+  }
+  .quiz-smart-toggle {
+    font-size: 13px;
+  }
+}
+
 /* Quiz animations */
 @keyframes quizPulse {
   0%, 100% { r: attr(r); opacity: 1; }
@@ -909,6 +1012,15 @@ body.quiz-mode .zoom-controls { left: 324px; }
         <span class="quiz-toggle-knob"></span>
       </label>
     </div>
+    <div class="quiz-smart-toggle">
+      <span>Smart Quiz: Focus Weak Areas</span>
+      <label class="quiz-toggle-switch">
+        <input type="checkbox" id="quizSmartCheck">
+        <span class="quiz-toggle-track"></span>
+        <span class="quiz-toggle-knob"></span>
+      </label>
+    </div>
+    <div class="quiz-mastery-summary" id="quizMasterySummary" style="display:none"></div>
     <button class="quiz-start-btn" id="quizStartBtn">Start Quiz</button>
   </div>
 
@@ -970,6 +1082,16 @@ body.quiz-mode .zoom-controls { left: 324px; }
 
 <!-- Toast -->
 <div class="quiz-toast" id="quizToast"></div>
+
+<!-- Mastery Legend -->
+<div class="mastery-legend" id="masteryLegend">
+  <h4>Mastery</h4>
+  <div class="mastery-legend-item"><span class="mastery-legend-swatch unseen"></span> Unseen</div>
+  <div class="mastery-legend-item"><span class="mastery-legend-swatch weak"></span> Weak (&lt;40%)</div>
+  <div class="mastery-legend-item"><span class="mastery-legend-swatch learning"></span> Learning (40–70%)</div>
+  <div class="mastery-legend-item"><span class="mastery-legend-swatch mastered"></span> Mastered (70–90%)</div>
+  <div class="mastery-legend-item"><span class="mastery-legend-swatch expert"></span> Expert (90%+)</div>
+</div>
 
 <!-- Zoom controls -->
 <div class="zoom-controls" style="left: 264px;">
@@ -1566,7 +1688,9 @@ const quizState = {
   timerSeconds: 30,
   reviewMode: false,
   reviewIndex: 0,
-  masteryVisible: false
+  masteryVisible: false,
+  smartMode: false,
+  preMastery: null
 };
 
 function loadMastery() {
@@ -2274,6 +2398,7 @@ function enterQuizMode() {
   filterPanel.style.display = 'none';
   showQuizScreen('quizSetup');
   buildQuizSectionChecks();
+  updateMasterySummary();
   detailPanel.classList.remove('open');
   selectedNode = null;
   resetHighlight();
@@ -2353,6 +2478,37 @@ const countSlider = document.getElementById('quizCountSlider');
 const countVal = document.getElementById('quizCountVal');
 countSlider.addEventListener('input', () => { countVal.textContent = countSlider.value; });
 
+// Smart Quiz toggle
+document.getElementById('quizSmartCheck').addEventListener('change', function() {
+  quizState.smartMode = this.checked;
+});
+
+function updateMasterySummary() {
+  const mastery = loadMastery();
+  const allTopics = nodes.filter(n => n.type === 'topic');
+  let masteredCount = 0, weakCount = 0, unseenCount = 0;
+  allTopics.forEach(t => {
+    const m = mastery[t.name];
+    if (!m || m.attempts === 0) { unseenCount++; return; }
+    const ratio = m.correct / m.attempts;
+    if (ratio >= 0.7) masteredCount++;
+    else if (ratio < 0.4) weakCount++;
+  });
+  const el = document.getElementById('quizMasterySummary');
+  if (Object.keys(mastery).length === 0) {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'block';
+  while (el.firstChild) el.removeChild(el.firstChild);
+  const sp1 = document.createElement('span'); sp1.className = 'mastered-count'; sp1.textContent = masteredCount + '/' + allTopics.length + ' mastered';
+  const sp2 = document.createElement('span'); sp2.className = 'weak-count'; sp2.textContent = weakCount + ' weak';
+  const sp3 = document.createElement('span'); sp3.className = 'unseen-count'; sp3.textContent = unseenCount + ' unseen';
+  el.appendChild(sp1); el.appendChild(document.createTextNode(' \u00b7 '));
+  el.appendChild(sp2); el.appendChild(document.createTextNode(' \u00b7 '));
+  el.appendChild(sp3);
+}
+
 document.getElementById('quizStartBtn').addEventListener('click', () => {
   const selected = [];
   document.querySelectorAll('#quizSectionChecks input:checked').forEach(cb => selected.push(parseInt(cb.dataset.idx)));
@@ -2360,6 +2516,7 @@ document.getElementById('quizStartBtn').addEventListener('click', () => {
   quizState.selectedSections = selected;
   quizState.questionCount = parseInt(countSlider.value);
   quizState.timedMode = document.getElementById('quizTimedCheck').checked;
+  quizState.smartMode = document.getElementById('quizSmartCheck').checked;
   startQuiz();
 });
 
@@ -2539,6 +2696,51 @@ function generateQuestions(sections, difficulty, count) {
   }
 
   const filtered = difficulty === 'mixed' ? questions : questions.filter(q => q.difficulty === difficulty);
+
+  // Smart Mode: weighted random selection targeting weak/unseen areas
+  if (quizState.smartMode) {
+    const mastery = loadMastery();
+    const now = Date.now();
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    const weighted = filtered.map(q => {
+      // Use the first highlight node to determine topic mastery
+      const topicName = q.highlightNodes && q.highlightNodes[0];
+      const m = topicName ? mastery[topicName] : null;
+      let weight = 3; // default for unseen
+      if (m && m.attempts > 0) {
+        const ratio = m.correct / m.attempts;
+        if (ratio >= 0.7) weight = 0.5;       // mastered — rarely re-test
+        else if (ratio >= 0.4) weight = 3;     // learning
+        else weight = 5;                        // weak
+        // Recently failed bonus
+        if (ratio < 0.7 && m.lastDate && (now - new Date(m.lastDate).getTime()) < sevenDays) {
+          weight += 2;
+        }
+      }
+      return { q, weight };
+    });
+    // Weighted shuffle: pick items by cumulative weight
+    const picked = [];
+    const seen = new Set();
+    const pool = [...weighted];
+    while (picked.length < count && pool.length > 0) {
+      const totalWeight = pool.reduce((sum, w) => sum + w.weight, 0);
+      let r = Math.random() * totalWeight;
+      let idx = 0;
+      for (let i = 0; i < pool.length; i++) {
+        r -= pool[i].weight;
+        if (r <= 0) { idx = i; break; }
+      }
+      const item = pool.splice(idx, 1)[0];
+      if (!seen.has(item.q.question)) {
+        seen.add(item.q.question);
+        picked.push(item.q);
+      }
+    }
+    return picked;
+  }
+
+  // Normal mode: random selection
   const selected = shuffle(filtered).slice(0, count);
   const seen = new Set();
   const unique = [];
@@ -2554,6 +2756,7 @@ function generateQuestions(sections, difficulty, count) {
 // ═══════════════════════════════════════════════════════════════
 
 function startQuiz() {
+  quizState.preMastery = loadMastery();
   const qs = generateQuestions(quizState.selectedSections, quizState.difficulty, quizState.questionCount);
   if (qs.length === 0) {
     alert('Not enough data to generate questions. Try selecting more sections.');
@@ -2648,6 +2851,7 @@ function submitAnswer(optionIndex) {
     mastery[name].lastDate = new Date().toISOString();
   });
   saveMastery(mastery);
+  if (quizState.masteryVisible) applyMasteryHeatMap();
   document.getElementById('btnMastery').style.display = '';
 
   // Visual feedback on options
@@ -2917,9 +3121,47 @@ function endQuiz() {
   document.getElementById('quizStatTime').textContent = timeS >= 60 ? Math.floor(timeS / 60) + 'm ' + (timeS % 60) + 's' : timeS + 's';
   document.getElementById('quizStatDiff').textContent = quizState.difficulty.charAt(0).toUpperCase() + quizState.difficulty.slice(1);
 
-  // Section breakdown (safe DOM)
+  // Mastery delta: compare pre-quiz vs current mastery
+  const currentMastery = loadMastery();
+  const preMastery = quizState.preMastery || {};
+  let improvedCount = 0, newTestedCount = 0;
+  Object.keys(currentMastery).forEach(topic => {
+    const cur = currentMastery[topic];
+    const pre = preMastery[topic];
+    if (!pre || pre.attempts === 0) {
+      if (cur && cur.attempts > 0) newTestedCount++;
+    } else if (cur && cur.attempts > 0) {
+      const preRatio = pre.correct / pre.attempts;
+      const curRatio = cur.correct / cur.attempts;
+      if (curRatio > preRatio) improvedCount++;
+    }
+  });
+
   const breakdownEl = document.getElementById('quizBreakdown');
   clearEl(breakdownEl);
+
+  if (improvedCount > 0 || newTestedCount > 0) {
+    const deltaDiv = document.createElement('div');
+    deltaDiv.className = 'quiz-mastery-delta';
+    if (improvedCount > 0) {
+      const sp = document.createElement('span');
+      sp.className = 'improved';
+      sp.textContent = '\u2191 ' + improvedCount + ' topic' + (improvedCount > 1 ? 's' : '') + ' improved';
+      deltaDiv.appendChild(sp);
+    }
+    if (improvedCount > 0 && newTestedCount > 0) {
+      deltaDiv.appendChild(document.createTextNode(' \u00b7 '));
+    }
+    if (newTestedCount > 0) {
+      const sp2 = document.createElement('span');
+      sp2.className = 'new-tested';
+      sp2.textContent = newTestedCount + ' new topic' + (newTestedCount > 1 ? 's' : '') + ' tested';
+      deltaDiv.appendChild(sp2);
+    }
+    breakdownEl.appendChild(deltaDiv);
+  }
+
+  // Section breakdown heading
   const breakdownH3 = document.createElement('h3');
   breakdownH3.textContent = 'Section Breakdown';
   breakdownEl.appendChild(breakdownH3);
@@ -2946,6 +3188,25 @@ function endQuiz() {
     score.className = 'quiz-breakdown-score';
     score.textContent = data.correct + '/' + data.total;
     item.appendChild(dot); item.appendChild(name); item.appendChild(bar); item.appendChild(score);
+
+    // Cumulative mastery bar for this section
+    const sectionTopics = (sec.children || []);
+    let secAttempts = 0, secCorrect = 0;
+    sectionTopics.forEach(t => {
+      const m = currentMastery[t.name];
+      if (m && m.attempts > 0) { secAttempts += m.attempts; secCorrect += m.correct; }
+    });
+    if (secAttempts > 0) {
+      const mastBar = document.createElement('div');
+      mastBar.className = 'quiz-breakdown-mastery-bar';
+      const mastFill = document.createElement('div');
+      mastFill.className = 'quiz-breakdown-mastery-fill';
+      mastFill.style.background = getMasteryColor(secCorrect / secAttempts);
+      setTimeout(() => { mastFill.style.width = Math.round((secCorrect / secAttempts) * 100) + '%'; }, 400);
+      mastBar.appendChild(mastFill);
+      item.appendChild(mastBar);
+    }
+
     breakdownEl.appendChild(item);
   });
 
@@ -3117,6 +3378,7 @@ document.getElementById('quizNewBtn').addEventListener('click', () => {
   showQuizScreen('quizSetup');
   clearQuizNodeStyles();
   rebindNextButton();
+  updateMasterySummary();
 });
 
 function rebindNextButton() {
@@ -3142,33 +3404,110 @@ btnMastery.addEventListener('click', () => {
   else clearMasteryHeatMap();
 });
 
+function getMasteryColor(ratio) {
+  if (ratio >= 0.9) return '#4caf7a';   // Expert
+  if (ratio >= 0.7) return '#66bb6a';   // Mastered
+  if (ratio >= 0.4) return '#f28e2b';   // Learning
+  return '#e15759';                      // Weak
+}
+
+function getMasteryTier(ratio) {
+  if (ratio >= 0.9) return 'expert';
+  if (ratio >= 0.7) return 'mastered';
+  if (ratio >= 0.4) return 'learning';
+  return 'weak';
+}
+
+function showMasteryLegend(show) {
+  document.getElementById('masteryLegend').style.display = show ? 'block' : 'none';
+}
+
 function applyMasteryHeatMap() {
   const mastery = loadMastery();
+  // Compute per-section aggregate mastery
+  const sectionAgg = {};
+  treeData.children.forEach((section, idx) => {
+    let totalAttempts = 0, totalCorrect = 0, topicCount = 0, seenCount = 0;
+    (section.children || []).forEach(topic => {
+      topicCount++;
+      const m = mastery[topic.name];
+      if (m && m.attempts > 0) {
+        totalAttempts += m.attempts;
+        totalCorrect += m.correct;
+        seenCount++;
+      }
+    });
+    sectionAgg[idx] = { totalAttempts, totalCorrect, topicCount, seenCount };
+  });
+
+  // Remove any existing expert glow filter
+  let svg = d3.select('svg');
+  svg.select('#expertGlow').remove();
+  const defs = svg.select('defs').empty() ? svg.append('defs') : svg.select('defs');
+  const filter = defs.append('filter').attr('id', 'expertGlow');
+  filter.append('feGaussianBlur').attr('stdDeviation', '3').attr('result', 'glow');
+  const merge = filter.append('feMerge');
+  merge.append('feMergeNode').attr('in', 'glow');
+  merge.append('feMergeNode').attr('in', 'SourceGraphic');
+
   nodeElements.selectAll('circle').each(function(d) {
-    if (d.type !== 'topic') return;
-    const m = mastery[d.name];
     const el = d3.select(this);
-    if (!m) {
-      el.attr('fill', 'var(--bg-tertiary)').attr('stroke', 'var(--text-muted)').attr('stroke-width', 1).attr('stroke-dasharray', '2,2');
+    if (d.type === 'root') return;
+
+    if (d.type === 'section') {
+      const agg = sectionAgg[d.sectionIndex];
+      if (!agg || agg.seenCount === 0) {
+        el.attr('fill', 'var(--bg-tertiary)').attr('stroke', 'var(--text-muted)')
+          .attr('stroke-width', 1).attr('stroke-dasharray', '3,3').attr('filter', '');
+      } else {
+        const ratio = agg.totalCorrect / agg.totalAttempts;
+        const color = getMasteryColor(ratio);
+        el.attr('fill', color + '44').attr('stroke', color).attr('stroke-width', 3)
+          .attr('stroke-dasharray', '').attr('filter', '');
+      }
+      return;
+    }
+
+    // Topic nodes
+    const m = mastery[d.name];
+    if (!m || m.attempts === 0) {
+      el.attr('fill', 'var(--bg-tertiary)').attr('stroke', 'var(--text-muted)')
+        .attr('stroke-width', 1).attr('stroke-dasharray', '2,2').attr('filter', '');
     } else {
       const ratio = m.correct / m.attempts;
-      const color = ratio >= 0.8 ? '#4caf7a' : ratio >= 0.5 ? '#f28e2b' : '#e15759';
-      el.attr('fill', color + '33').attr('stroke', color).attr('stroke-width', 3).attr('stroke-dasharray', '');
+      const color = getMasteryColor(ratio);
+      const tier = getMasteryTier(ratio);
+      el.attr('fill', color + '33').attr('stroke', color)
+        .attr('stroke-width', tier === 'expert' ? 4 : 3)
+        .attr('stroke-dasharray', '');
+      if (tier === 'expert') {
+        el.attr('stroke', '#ffd700').attr('filter', 'url(#expertGlow)');
+      } else {
+        el.attr('filter', '');
+      }
     }
   });
+
+  showMasteryLegend(true);
 }
 
 function clearMasteryHeatMap() {
   nodeElements.selectAll('circle').each(function(d) {
     const el = d3.select(this);
     if (d.type === 'root') {
-      el.attr('fill', 'var(--accent)').attr('stroke', '#2a9d6e').attr('stroke-width', 3).attr('stroke-dasharray', '');
+      el.attr('fill', 'var(--accent)').attr('stroke', '#2a9d6e').attr('stroke-width', 3)
+        .attr('stroke-dasharray', '').attr('filter', '');
     } else if (d.type === 'section') {
-      el.attr('fill', sectionColors[d.sectionIndex]).attr('stroke', 'none').attr('stroke-width', 0).attr('stroke-dasharray', '');
+      el.attr('fill', sectionColors[d.sectionIndex]).attr('stroke', 'none').attr('stroke-width', 0)
+        .attr('stroke-dasharray', '').attr('filter', '');
     } else {
-      el.attr('fill', sectionColors[d.sectionIndex] + '33').attr('stroke', sectionColors[d.sectionIndex]).attr('stroke-width', 2).attr('stroke-dasharray', '');
+      el.attr('fill', sectionColors[d.sectionIndex] + '33').attr('stroke', sectionColors[d.sectionIndex])
+        .attr('stroke-width', 2).attr('stroke-dasharray', '').attr('filter', '');
     }
   });
+  showMasteryLegend(false);
+  // Remove glow filter
+  d3.select('#expertGlow').remove();
 }
 
 // ═══════════════════════════════════════════════════════════════
