@@ -463,12 +463,17 @@ body::before {
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .header { padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
+  .header { padding: 10px 12px; gap: 6px; flex-wrap: wrap; }
   .header-title { font-size: 14px; }
   .search-wrap { flex: 1 1 100%; order: 10; }
+  .header-sep { display: none; }
+  .header-actions { gap: 4px; }
+  .btn { padding: 7px 8px; font-size: 0; gap: 0; }
+  .btn svg { width: 16px; height: 16px; }
   .detail-panel { width: 100%; }
-  .legend { gap: 12px; padding: 8px 14px; }
+  .legend { gap: 8px; padding: 8px 14px; bottom: 12px; max-width: 95vw; flex-wrap: wrap; justify-content: center; }
   .legend-item { font-size: 10px; }
+  .zoom-controls { bottom: 12px; left: 12px; }
 }
 
 /* ── Scrollbar ── */
@@ -568,6 +573,7 @@ body::before {
 </div>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="theme.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════
 // DATA — Supply Chain Management Knowledge Tree
@@ -1473,23 +1479,7 @@ document.getElementById('btnCollapse').addEventListener('click', () => {
 // THEME TOGGLE
 // ═══════════════════════════════════════════════════════════════
 
-const btnTheme = document.getElementById('btnTheme');
-const themeLabel = document.getElementById('themeLabel');
-
-// Restore preference
-const savedTheme = localStorage.getItem('scm-tree-theme');
-if (savedTheme === 'light') {
-  document.body.classList.replace('dark', 'light');
-  themeLabel.textContent = 'Dark';
-}
-
-btnTheme.addEventListener('click', () => {
-  const isLight = document.body.classList.contains('light');
-  document.body.classList.replace(isLight ? 'light' : 'dark', isLight ? 'dark' : 'light');
-  themeLabel.textContent = isLight ? 'Light' : 'Dark';
-  localStorage.setItem('scm-tree-theme', isLight ? 'dark' : 'light');
-  update(root);
-});
+initThemeToggle(function() { update(root); });
 
 // ═══════════════════════════════════════════════════════════════
 // INITIAL RENDER
