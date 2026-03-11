@@ -517,6 +517,17 @@ body::before {
   .warroom-map { min-height: 300px; }
   .debrief-kpi-grid { grid-template-columns: repeat(2, 1fr); }
 }
+@media (max-width: 768px) {
+  .header { padding: 10px 12px; gap: 6px; flex-wrap: wrap; }
+  .header-title { font-size: 14px; }
+  .header-sep { display: none; }
+  .header-actions { gap: 4px; }
+  .btn { padding: 7px 8px; font-size: 0; gap: 0; }
+  .btn svg { width: 16px; height: 16px; }
+  .sim-controls { gap: 4px; }
+  .warroom-sidebar { max-height: 150px; }
+  .warroom-dashboard { max-height: 150px; }
+}
 </style>
 </head>
 <body class="dark">
@@ -591,6 +602,7 @@ body::before {
   <div class="debrief-content" id="debriefContent"></div>
 </div>
 
+<script src="theme.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════
 // HELPERS
@@ -937,6 +949,198 @@ var SCENARIOS = [
             effects: { factoryCap: 130, costMult: 1.7, qualityRisk: true, effectDuration: 15 } },
           { id: 'partnership', label: 'Strategic Partnership', desc: 'Partner with a non-competing manufacturer to white-label their capacity. Shared risk and reward.', concepts: ['Collaborative Supply Chains', 'Supply Chain Strategy'],
             effects: { extraCap: 50, costMult: 1.3, effectDuration: 15 } }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'red_sea', name: 'Red Sea Blockade',
+    subtitle: 'Missile attacks force global shipping reroutes',
+    difficulty: 'Hard', duration: 30,
+    briefing: 'You are the Head of Logistics at MediterraneanTrade Corp, an EU-based importer of Asian consumer electronics. 60% of your container volume transits the Suez Canal via the Red Sea. Armed groups in Yemen are launching missile and drone attacks on commercial vessels. This morning, Maersk, your primary carrier, announced indefinite suspension of all Red Sea transits. Your marine war-risk insurance just tripled. You have 40 containers currently in the Red Sea corridor, 200 units of safety stock in EU warehouses, and a factory that needs daily component deliveries to keep running. The EU market accounts for 70% of your revenue. Every day without a plan costs you \u20AC200,000 in delayed sales.',
+    concepts: ['International Trade', 'Transportation Modes', 'Risk Mitigation', '3PL & 4PL', 'Supply Chain Risks', 'Supply Chain Resilience', 'Freight Management', 'Landed Cost Analysis'],
+    nodes: {
+      supplierA: { name: 'Shenzhen Factory', capacity: 75, cost: 1.0, active: true },
+      supplierB: { name: 'Istanbul Parts', capacity: 35, cost: 1.3, active: true },
+      factory: { name: 'EU Assembly', capacity: 70, materials: 160, maxMaterials: 350 },
+      warehouseE: { name: 'Rotterdam Hub', inventory: 200, maxInv: 400 },
+      warehouseW: { name: 'Barcelona DC', inventory: 130, maxInv: 350 },
+      retailN: { name: 'Northern EU', demand: 30 },
+      retailS: { name: 'Southern EU', demand: 25 },
+      retailW: { name: 'UK Market', demand: 20 }
+    },
+    events: [
+      { day: 2, id: 'shipping_attack', title: 'Shipping Lanes Under Attack', severity: 'critical',
+        description: 'Three commercial vessels hit by anti-ship missiles in the Bab el-Mandeb Strait this week. Maersk, MSC, and Hapag-Lloyd have all suspended Red Sea transits indefinitely. Your 40 in-transit containers are being held at Jeddah port awaiting rerouting decisions. Lead times from Shenzhen have jumped from 25 to 40+ days via the Cape of Good Hope. Your Rotterdam warehouse has 8 days of stock at current demand rates.',
+        autoEffects: { supplierACap: 30 },
+        actions: [
+          { id: 'cape_reroute', label: 'Reroute via Cape of Good Hope', desc: 'Accept the Africa reroute for all shipments. Adds 14 days transit and 40% fuel surcharge per container. Predictable and safe, but your inventory buffer will be depleted before the first rerouted shipment arrives.', concepts: ['Transportation Modes', 'Freight Management'],
+            effects: { costMult: 1.4, supplierACap: 45, effectDuration: 25 } },
+          { id: 'emergency_air', label: 'Emergency Air Freight', desc: 'Air-ship the most critical components (PCBs, chipsets) from Shenzhen to Amsterdam. Covers ~25% of your volume needs at 8-10x the ocean freight cost. Gets product to shelves in 3 days while you sort out long-term logistics.', concepts: ['Transportation Modes', 'Risk Mitigation'],
+            effects: { emergencySupply: 35, cost: 55000, costMult: 1.3, effectDuration: 10 } },
+          { id: 'wait_escorts', label: 'Hold & Wait for Escorts', desc: 'US and UK navies have announced Operation Prosperity Guardian to escort commercial vessels. Wait 5-7 days for convoy escorts to resume. If it works, minimal disruption. If attacks continue despite escorts, you\'ve lost a critical week.', concepts: ['Risk Mitigation', 'Supply Chain Risks'],
+            effects: { supplierACap: 20, effectDuration: 7, riskMult: 1.5 } }
+        ]
+      },
+      { day: 8, id: 'insurance_spike', title: 'Insurance & Freight Rate Spike', severity: 'warning',
+        description: 'Marine war-risk insurance has surged from 0.05% to 0.5-1.0% of cargo value \u2014 a 10-20x increase. Spot container rates Asia-to-Europe have doubled to \u20AC4,200/TEU. Your CFO is alarmed: landed cost per unit has increased 35%, erasing margins on 60% of your product line. Competitors are raising prices. Your landed cost model \u2014 built around $1,500/TEU Suez rates \u2014 is obsolete.',
+        actions: [
+          { id: 'lock_contracts', label: 'Lock Long-Term Freight Contracts', desc: 'Negotiate 6-month contracts with CMA CGM at current (elevated) Cape route rates. You lock in \u20AC3,800/TEU \u2014 high, but hedged if rates spike further. Commits you to minimum volume guarantees.', concepts: ['Freight Management', 'Landed Cost Analysis'],
+            effects: { costMult: 1.3, effectDuration: 25 } },
+          { id: 'spot_market', label: 'Ride Spot Market', desc: 'Stay on spot rates, betting the crisis resolves within weeks and rates normalize. If military escorts succeed, you save 20% vs. locked contracts. If the crisis deepens, you\'re exposed to further rate spikes.', concepts: ['Risk Mitigation', 'Landed Cost Analysis'],
+            effects: { costMult: 1.5, riskMult: 1.3, effectDuration: 15 } },
+          { id: 'nearshore_accel', label: 'Nearshore Supplier Acceleration', desc: 'Accelerate orders from your Istanbul supplier (Supplier B) to reduce Red Sea dependency. Istanbul-to-Rotterdam is Mediterranean-only \u2014 no Red Sea transit needed. Supplier B costs 30% more per unit but ships in 5 days. Ramp their capacity from 35 to 55 units/day.', concepts: ['Reshoring & Nearshoring', 'Strategic Sourcing'],
+            effects: { supplierBCap: 55, costMult: 1.2, effectDuration: 20 } }
+        ]
+      },
+      { day: 16, id: 'buffer_depleting', title: 'Inventory Buffer Depleting', severity: 'critical',
+        description: 'Rotterdam warehouse at 18% capacity \u2014 5 production days remaining before the assembly line halts. Barcelona DC already rationing shipments to Southern EU retailers. Three major retail partners have issued formal warnings about stock-outs. Your competitor, AsiaLink Electronics, secured early air freight and is taking your shelf space. The first Cape-rerouted containers won\'t arrive for another 10 days.',
+        actions: [
+          { id: 'rail_corridor', label: 'China-Europe Rail Corridor', desc: 'Route components via the Trans-Siberian/China-Europe Express rail network (Chongqing \u2192 Duisburg). 18-day transit \u2014 faster than Cape sea route (35 days) but slower and cheaper than air freight. Costs ~2x ocean but 50% of air. Can handle 30% of your volume. Limited availability \u2014 booking windows are tight.', concepts: ['Transportation Modes', 'Supply Chain Resilience'],
+            effects: { emergencySupply: 25, costMult: 1.6, effectDuration: 15 } },
+          { id: 'sku_focus', label: 'Partial Production & SKU Focus', desc: 'Halt production of the 8 lowest-margin SKUs. Focus remaining materials on your 5 hero products that generate 70% of revenue. Reduces total output by 30% but extends your materials runway by 12 days and protects core revenue.', concepts: ['Supply Chain Strategy', 'Inventory Optimization'],
+            effects: { factoryCap: 50, demandMult: 0.75, costMult: 0.9, effectDuration: 15 } },
+          { id: 'eu_suppliers', label: 'Emergency EU Supplier Qualification', desc: 'Fast-track qualification of two European component suppliers (Czech Republic, Poland). Higher unit cost but 3-day ground delivery and zero maritime risk. Takes 5 days to qualify and first shipments arrive day 21. Permanently diversifies your supply base.', concepts: ['Strategic Sourcing', 'Reshoring & Nearshoring'],
+            effects: { supplierBCap: 50, costMult: 1.35, effectDuration: 15 } }
+        ]
+      },
+      { day: 24, id: 'new_normal', title: 'New Normal Emerging', severity: 'info',
+        description: 'Six months into the crisis with no resolution in sight. Military escorts have reduced but not eliminated attacks. Industry consensus: Red Sea disruption is the \'new normal\' for 2024-2025. Your board wants a sustainable long-term logistics strategy. Competitors who adapted early are outperforming. The global shipping industry is fundamentally reorganizing routes, alliances, and pricing around this reality.',
+        actions: [
+          { id: 'dual_route', label: 'Dual-Route Permanent Strategy', desc: 'Establish split routing as standard operating procedure: 60% via Cape of Good Hope (reliable, higher cost), 40% via Suez (when escorts available, lower cost but variable). Build optionality into every shipment. Accept permanently elevated logistics costs of ~20%.', concepts: ['Supply Chain Strategy', 'Risk Mitigation'],
+            effects: { supplierACap: 60, costMult: 1.2, riskReduction: true } },
+          { id: 'india_diversify', label: 'India Supplier Diversification', desc: 'Add Indian component manufacturers (Tamil Nadu, Gujarat) to your supplier network. India-to-EU routing via the Arabian Sea avoids the Red Sea chokepoint entirely. 15-day transit to Rotterdam. Splits your Asia sourcing risk across two countries and two ocean routes.', concepts: ['Global Sourcing', 'Supply Chain Resilience'],
+            effects: { supplierACap: 50, supplierBCap: 45, costMult: 1.15, riskReduction: true } },
+          { id: 'buffer_invest', label: 'Regional Inventory Buffer Investment', desc: 'Build 45-day safety stock at both EU warehouses. Major working capital investment (~\u20AC500K tied up in inventory) but creates a crisis-proof buffer. Also negotiate vendor-managed inventory arrangements with key suppliers to share the carrying cost.', concepts: ['Safety Stock', 'Inventory Optimization'],
+            effects: { cost: 50000, warehouseEInv: 350, warehouseWInv: 300, riskReduction: true } }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'port_strike', name: 'The Port Strike',
+    subtitle: '45,000 dockworkers just walked off the job',
+    difficulty: 'Normal', duration: 28,
+    briefing: 'You are the Director of Supply Chain at AmericanGoods Inc., a mid-size consumer products company selling home goods, small appliances, and seasonal items through major retailers and your own e-commerce channel. It\'s October 1st \u2014 the heart of holiday import season. At midnight, 45,000 ILA dockworkers walked off the job at all 36 East and Gulf Coast ports. These ports handle 50% of US containerized imports. You have 30 containers on ships approaching the East Coast, carrying $4.2 million in holiday inventory \u2014 your most profitable quarter. West Coast ports are functional but already congested from companies that pre-diverted cargo in anticipation. Your East Coast DC has 12 days of inventory. Your Gulf Coast DC has 8 days. Black Friday is 55 days away, and every day of delay compounds into empty shelves during peak selling season.',
+    concepts: ['Supply Chain Risks', 'Business Continuity Planning', 'Freight Management', 'Transportation Modes', 'Supply Chain Resilience', 'Warehouse Management', 'Omnichannel Fulfillment', 'Outsourcing Decisions'],
+    nodes: {
+      supplierA: { name: 'Asian Manufacturer', capacity: 70, cost: 1.0, active: true },
+      supplierB: { name: 'European Supplier', capacity: 40, cost: 1.25, active: true },
+      factory: { name: 'US Assembly', capacity: 75, materials: 180, maxMaterials: 400 },
+      warehouseE: { name: 'East Coast DC', inventory: 180, maxInv: 350 },
+      warehouseW: { name: 'Gulf Coast DC', inventory: 120, maxInv: 300 },
+      retailN: { name: 'East Region', demand: 30 },
+      retailS: { name: 'Midwest', demand: 25 },
+      retailW: { name: 'West Region', demand: 20 }
+    },
+    events: [
+      { day: 1, id: 'ports_silent', title: 'Ports Go Silent', severity: 'critical',
+        description: 'All 36 East and Gulf Coast ports are shut down. Cranes are idle. 100+ container ships are anchoring offshore in growing queues. Your 30 containers of holiday inventory \u2014 including the entire Black Friday allocation of your bestselling air fryer and smart home products \u2014 are on ships now circling the harbor. The National Retail Federation is calling it a \'supply chain emergency.\' Your retail partners are on the phone demanding status updates. Port of Los Angeles reports it\'s already at 95% capacity from pre-diverted cargo.',
+        autoEffects: { supplierACap: 15, supplierBCap: 10 },
+        actions: [
+          { id: 'divert_west', label: 'Divert to West Coast', desc: 'Redirect your ships to Los Angeles/Long Beach. Adds 15 days of transit through the Panama Canal, then containers need cross-country rail/truck to your East Coast DC. Total delay: 18-22 days. LA port is congested but functioning. Costs 45% more due to Panama transit fees + intermodal transport.', concepts: ['Transportation Modes', 'Freight Management'],
+            effects: { supplierACap: 35, costMult: 1.45, effectDuration: 18 } },
+          { id: 'air_priority', label: 'Air Freight Priority SKUs', desc: 'Fly your top 10 bestselling SKUs directly from Asian/European factories to US airports. Covers approximately 20% of your holiday volume at 8x the ocean freight cost. Product reaches your DCs in 3-4 days. Prioritize items with highest margin-to-weight ratio (electronics > bulky appliances).', concepts: ['Transportation Modes', 'Risk Mitigation'],
+            effects: { emergencySupply: 30, cost: 60000, costMult: 1.3, effectDuration: 8 } },
+          { id: 'canada_gateway', label: 'Canadian Port Gateway', desc: 'Route ships to Port of Montreal and Port of Halifax, then truck across the US-Canada border. Moderate delay (8-10 days). Canadian ports are less congested than West Coast. Cross-border trucking is reliable but requires customs clearance at the border \u2014 adding paperwork and 1-2 day delays. Cost increase ~30%.', concepts: ['Business Continuity Planning', 'International Trade'],
+            effects: { supplierACap: 40, supplierBCap: 25, costMult: 1.3, effectDuration: 12 } }
+        ]
+      },
+      { day: 6, id: 'ripple_effects', title: 'Ripple Effects Spreading', severity: 'warning',
+        description: 'The diversion wave has hit. West Coast ports are now gridlocked \u2014 vessel waiting times at LA/Long Beach have jumped from 1 day to 6 days. Rail carriers are fully booked for 3 weeks. Truck spot rates have doubled on key East-West corridors. Your warehouse receiving docks in both DCs are backed up \u2014 the Gulf Coast DC is receiving diverted freight from three directions simultaneously. Workers are doing overtime but error rates are climbing. Two retail partners have formally notified you of \'at risk\' inventory status for holiday planograms. Meanwhile, ILA leadership and the US Maritime Alliance are still far apart on automation \u2014 the core sticking point.',
+        actions: [
+          { id: 'charter_fleet', label: 'Charter Dedicated Fleet', desc: 'Secure a dedicated fleet of 25 trucks at premium contract rates ($8,500/load vs. normal $4,200). Guaranteed capacity for 2 weeks. These trucks run dedicated lanes from alternate ports to your DCs, bypassing the spot market chaos. Expensive but reliable.', concepts: ['Freight Management', 'Supply Chain Resilience'],
+            effects: { costMult: 1.5, warehouseEFlow: 1.3, effectDuration: 14 } },
+          { id: 'popup_crossdock', label: 'Pop-Up Cross-Dock Operations', desc: 'Set up temporary cross-docking facilities near Port of Savannah (if it reopens) and Port of Houston. Lease warehouse space, hire temp workers, and create intermediate sorting points. Reduces pressure on your main DCs by pre-sorting and sequencing incoming freight. 3-day setup time, then doubles your receiving throughput.', concepts: ['Warehouse Management', 'Business Continuity Planning'],
+            effects: { cost: 25000, warehouseEFlow: 1.2, warehouseWFlow: 1.3, effectDuration: 15 } },
+          { id: 'demand_manage', label: 'Customer Demand Management', desc: 'Proactive communication blitz to all retail partners and e-commerce customers. Push back delivery promises by 2 weeks. Offer 5% discount on delayed orders to maintain goodwill. Launch \'Pre-order Now, Ship When Available\' campaign on your e-commerce site. Reduces immediate fulfillment pressure and buys time.', concepts: ['Omnichannel Fulfillment', 'Supply Chain Strategy'],
+            effects: { demandMult: 0.8, costMult: 0.95, effectDuration: 12 } }
+        ]
+      },
+      { day: 14, id: 'strike_week3', title: 'Strike Enters Week 3', severity: 'critical',
+        description: 'Negotiations have stalled. The President is considering invoking the Taft-Hartley Act to force an 80-day cooling-off period, but hasn\'t acted yet. Store shelves in the East Region are visibly thinning \u2014 your air fryer is sold out at 60% of retail locations. Competitors who pre-positioned 90 days of inventory (Walmart, Costco) are gaining significant market share. Your stock price is down 8% on supply chain concerns. The CEO wants a \'War Room update\' on how you\'re protecting the holiday quarter. Social media is full of customers posting empty shelf photos tagging your brand.',
+        actions: [
+          { id: 'supplier_airlift', label: 'Emergency Supplier Airlift Program', desc: 'Coordinate directly with Asian and European suppliers to air-ship finished goods (not just components) directly to regional DCs, bypassing assembly entirely. For your European supplier, use dedicated cargo flights to JFK. For Asian goods, fly into Memphis (FedEx hub) for next-day domestic distribution. Covers 35% of demand at extreme cost.', concepts: ['3PL & 4PL', 'Risk Mitigation'],
+            effects: { emergencySupply: 40, cost: 45000, costMult: 1.6, effectDuration: 10 } },
+          { id: 'domestic_pivot', label: 'Domestic Manufacturing Pivot', desc: 'Activate 3 US-based contract manufacturers to produce your simplest product lines (home textiles, basic kitchen items). These represent 25% of your SKUs. US manufacturers can deliver to your DCs in 5 days with zero port dependency. Unit cost 40% higher but available immediately. Won\'t cover electronics or complex products.', concepts: ['Outsourcing Decisions', 'Reshoring & Nearshoring'],
+            effects: { factoryCap: 100, costMult: 1.35, effectDuration: 12 } },
+          { id: 'strategic_ration', label: 'Strategic Inventory Rationing', desc: 'Implement allocation-based fulfillment. Rank every customer and channel by profitability and strategic value. Top-tier retail partners and your own e-commerce get 100% fill rates from remaining inventory. Lower-tier channels get 50%. Discontinue fulfillment to bottom 20% of accounts until crisis resolves. Protects your most valuable relationships at the cost of smaller ones.', concepts: ['Inventory Optimization', 'Supply Chain Strategy'],
+            effects: { demandMult: 0.7, revenueProtect: 1.1, effectDuration: 12 } }
+        ]
+      },
+      { day: 22, id: 'settlement_looming', title: 'Settlement Looming', severity: 'info',
+        description: 'Breakthrough in negotiations: a tentative deal on wages (62% raise over 6 years) with automation discussions deferred to January. Ports expected to reopen within 48 hours. But the aftermath will be brutal \u2014 200+ ships are queued offshore, and port analysts estimate 6-8 weeks to clear the backlog even at full capacity. The \'port congestion tsunami\' is about to hit your receiving operations. You need a post-strike recovery plan that handles the surge without overwhelming your warehouses. Black Friday is 33 days away.',
+        actions: [
+          { id: 'preposition_gates', label: 'Pre-Position at Port Gates', desc: 'Deploy your dedicated truck fleet to port terminals before gates reopen. First trucks in, first containers out. Coordinate with your freight forwarder to have container numbers and chassis pre-assigned. Goal: have your 30 original containers on trucks within 48 hours of reopening. Aggressive but gives you a head start over competitors.', concepts: ['Freight Management', 'Supply Chain Resilience'],
+            effects: { supplierACap: 70, supplierBCap: 40, costMult: 1.2, effectDuration: 8 } },
+          { id: 'staggered_receiving', label: 'Staggered Receiving & Overflow Plan', desc: 'Coordinate with port authority for scheduled container releases \u2014 5 containers/day rather than all 30 at once. Set up overflow storage at a 3PL facility near the port to buffer containers you can\'t process immediately. Prevents your DC from drowning in a post-strike container avalanche.', concepts: ['Warehouse Management', '3PL & 4PL'],
+            effects: { supplierACap: 55, supplierBCap: 35, cost: 15000, warehouseEFlow: 1.4, effectDuration: 12 } },
+          { id: 'multi_port', label: 'Permanent Multi-Port Contingency', desc: 'Use this crisis as catalyst to permanently restructure your import strategy. Split future shipments: 40% East Coast, 30% Gulf Coast, 30% West Coast. Build 30-day safety stock as standard policy. Negotiate standby contracts with Canadian port trucking companies. Estimated annual cost increase: 8%. Never be this vulnerable to a single-coast shutdown again.', concepts: ['Business Continuity Planning', 'Supply Chain Resilience', 'Risk Mitigation'],
+            effects: { supplierACap: 60, supplierBCap: 35, costMult: 1.08, riskReduction: true } }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'tariff_war', name: 'The Tariff Shock',
+    subtitle: 'Overnight tariffs just made your supply chain unaffordable',
+    difficulty: 'Hard', duration: 32,
+    briefing: 'You are the VP of Global Sourcing at PacificRim Electronics, a US consumer electronics brand selling smart home devices, wireless audio, and mobile accessories. Your products are designed in California, manufactured in Guangdong Province (China), and sold through Amazon, Best Buy, and your own website. Last night, the government announced 145% tariffs on Chinese electronics imports \u2014 effective in 72 hours. Your product margins were 35%. At 145% tariffs, your top-selling $99 smart speaker now costs you $112 to land in the US \u2014 you\'re selling at a loss. 80% of your components and 100% of your finished goods come from China. You have $8M of in-transit inventory approaching US customs. Your Vietnamese assembly partner (Supplier B) handles only 20% of volume. Your competitors \u2014 all in the same boat \u2014 are panicking. But the first company to restructure its supply chain wins the market. You have 30 days before your board meeting to present a viable path forward.',
+    concepts: ['International Trade', 'Sanctions & Export Controls', 'Reshoring & Nearshoring', 'Strategic Sourcing', 'Landed Cost Analysis', 'Global Sourcing', 'Regulatory Compliance', 'Supply Chain Strategy'],
+    nodes: {
+      supplierA: { name: 'Guangdong Electronics', capacity: 85, cost: 1.0, active: true },
+      supplierB: { name: 'Vietnam Assembly', capacity: 25, cost: 1.2, active: true },
+      factory: { name: 'US Final Assembly', capacity: 60, materials: 200, maxMaterials: 400 },
+      warehouseE: { name: 'West Coast DC', inventory: 190, maxInv: 400 },
+      warehouseW: { name: 'East Coast DC', inventory: 150, maxInv: 350 },
+      retailN: { name: 'Domestic Direct', demand: 30 },
+      retailS: { name: 'Retail Partners', demand: 35 },
+      retailW: { name: 'Export Markets', demand: 15 }
+    },
+    events: [
+      { day: 2, id: 'tariff_hits', title: 'Tariff Shock Hits', severity: 'critical',
+        description: 'The 145% tariff is now in effect. US Customs and Border Protection has updated HTS codes overnight. Your $8M in-transit shipment \u2014 12 containers approaching Long Beach \u2014 will be assessed at the new rate. At current pricing, you\'ll lose $14 per unit on your hero product. Your CFO has calculated: at these tariff rates, 65% of your product line is unprofitable. Your stock dropped 12% in pre-market trading. Amazon has flagged your listings for potential price increases. Best Buy\'s buyer called asking if you can hold pricing through Q4 \u2014 you can\'t. Every competitor with China exposure is in the same crisis, but the window to act is narrow. Companies that restructure fastest will capture market share from those that don\'t.',
+        autoEffects: { costMult: 2.45 },
+        actions: [
+          { id: 'absorb_accelerate', label: 'Absorb & Accelerate', desc: 'Rush-clear all in-transit containers through customs immediately, eating the 145% tariff on $8M of goods. You\'ll lose ~$3.5M on this inventory, but it fills your DC with product to sell for the next 3 weeks while you build a sourcing transition plan. Think of it as buying time with money.', concepts: ['Landed Cost Analysis', 'Risk Mitigation'],
+            effects: { cost: 35000, costMult: 1.8, effectDuration: 20 } },
+          { id: 'price_increase', label: 'Immediate Price Increases', desc: 'Raise retail prices across the board \u2014 30% on electronics, 20% on accessories. Pass the tariff through to consumers. You\'ll lose price-sensitive customers and Amazon Buy Box rankings, but margins survive. Risk: competitors who find alternative sourcing first will undercut you.', concepts: ['Supply Chain Strategy', 'Landed Cost Analysis'],
+            effects: { demandMult: 0.7, costMult: 1.4, effectDuration: 20 } },
+          { id: 'pause_china', label: 'Pause All Chinese Orders', desc: 'Immediately halt all new purchase orders from Guangdong supplier. Stretch existing US inventory (3 weeks\' worth) as far as possible. Redirect all sourcing energy to qualifying non-Chinese alternatives. Risky: if alternatives take too long, you\'ll have empty shelves.', concepts: ['Strategic Sourcing', 'International Trade'],
+            effects: { supplierACap: 10, costMult: 1.1, effectDuration: 15 } }
+        ]
+      },
+      { day: 8, id: 'sourcing_scramble', title: 'The Great Sourcing Scramble', severity: 'warning',
+        description: 'You\'re not the only company trying to leave China. Vietnamese factories report being booked solid for 18 months. Indian manufacturers have quality concerns and limited electronics capability. Mexican assembly plants lack skilled labor for your products. Your sourcing team has been on planes for a week, visiting factories across Southeast Asia. The problem: everybody wants the same alternative capacity, and there isn\'t enough. Your Vietnam supplier (Supplier B) can expand from 25 to 45 units/day with overtime, but that covers only 30% of your needs. Meanwhile, your Chinese supplier in Guangdong is offering 15% price cuts to keep your business \u2014 but even at discounted prices + 145% tariff, the math doesn\'t work.',
+        actions: [
+          { id: 'vietnam_expand', label: 'Vietnam Capacity Expansion', desc: 'Go all-in on your existing Vietnam relationship. Invest $200K in a dedicated production line at Supplier B\'s Ho Chi Minh City factory. They guarantee capacity ramp to 45 units/day within 15 days, then 65 units/day within 45 days. Vietnam tariff rate: 0% under current trade agreements. Drawback: single-country concentration risk replaces your China concentration risk.', concepts: ['Global Sourcing', 'Strategic Sourcing'],
+            effects: { supplierBCap: 45, cost: 20000, costMult: 1.25, effectDuration: 20 } },
+          { id: 'mexico_nearshore', label: 'Mexico Nearshoring Play', desc: 'Begin qualifying two Mexican contract manufacturers in Monterrey and Guadalajara for final assembly. USMCA trade agreement means 0% tariffs on Mexican-assembled goods. 3-day ground shipping to your West Coast DC. Takes 20 days to qualify and set up, but once running, it\'s your fastest and tariff-free option. Unit cost 35% higher than China was, but cheaper than China+tariffs.', concepts: ['Reshoring & Nearshoring', 'Regulatory Compliance'],
+            effects: { supplierBCap: 35, factoryCap: 80, costMult: 1.3, effectDuration: 20 } },
+          { id: 'china_plus_3', label: 'Multi-Country China+3 Strategy', desc: 'Simultaneously qualify suppliers in Vietnam, India (for accessories and simpler products), and Thailand (for PCB assembly). Split future production: 40% Vietnam, 30% India, 30% Thailand. Most complex to manage but most resilient. Each country has different tariff rates, quality capabilities, and lead times. Requires a dedicated sourcing team to coordinate.', concepts: ['Global Sourcing', 'Supply Chain Resilience'],
+            effects: { supplierACap: 25, supplierBCap: 40, costMult: 1.35, effectDuration: 20 } }
+        ]
+      },
+      { day: 18, id: 'margin_crisis', title: 'Margin Crisis & Board Pressure', severity: 'critical',
+        description: 'Your CFO just delivered the Q1 projections: margins are -8% on 40% of your SKUs. The board has scheduled an emergency meeting. Your largest retail partner, Best Buy, has moved two competitors\' products into your shelf space \u2014 they found tariff-free alternatives faster. Amazon\'s algorithm has buried your listings because you raised prices 30% while competitors held steady using Vietnamese and Indian sourcing. Your $99 smart speaker is now $129 while a competitor\'s equivalent is $95. You\'re losing market share every single day. The board wants to know: cut products, cut costs, or restructure entirely?',
+        actions: [
+          { id: 'redesign_bom', label: 'Product Redesign for Non-Chinese BOM', desc: 'Engineering team redesigns your top 5 products to eliminate China-dependent components. Replace Chinese chipsets with Taiwanese/Korean alternatives. Use Vietnamese PCB assembly. Redesign housings for injection molding in Mexico. Timeline: 30 days to first production run. Reduces BOM cost by 20% compared to China+tariff, though still 15% above pre-tariff China pricing.', concepts: ['Supply Chain Strategy', 'Strategic Sourcing'],
+            effects: { factoryCap: 55, costMult: 1.15, effectDuration: 15 } },
+          { id: 'sku_rationalize', label: 'Aggressive SKU Rationalization', desc: 'Kill your bottom 12 SKUs (40% of catalog, but only 15% of revenue). Discontinue low-margin accessories and commodity products where you can\'t compete on price. Focus all sourcing capacity on your 8 hero products that generate 85% of gross profit. Shrinks revenue by 15% but restores positive margins immediately.', concepts: ['Inventory Optimization', 'Supply Chain Strategy'],
+            effects: { demandMult: 0.75, factoryCap: 70, costMult: 0.9, effectDuration: 15 } },
+          { id: 'tariff_engineering', label: 'Tariff Engineering via Assembly Restructuring', desc: 'Restructure your assembly flow so products qualify for lower tariff classifications. Ship Chinese components (lower tariff rate as \'parts\') to your US or Mexican facility for final assembly. Under HTS rules, \'substantial transformation\' in a non-tariffed country can change the product\'s country of origin. Legal but requires careful customs compliance work and possible CBP review. If approved, effective tariff drops from 145% to ~25% on components.', concepts: ['Regulatory Compliance', 'Landed Cost Analysis'],
+            effects: { supplierACap: 50, costMult: 1.25, factoryCap: 75, effectDuration: 15 } }
+        ]
+      },
+      { day: 26, id: 'new_landscape', title: 'New Trade Landscape', severity: 'info',
+        description: 'Industry consensus: these tariffs are permanent \u2014 part of a structural US-China economic decoupling. Companies that adapted fastest are thriving: Apple\'s India iPhone production now covers 25% of global demand; Samsung left China entirely for Vietnam years ago. The lesson is clear: the era of single-country sourcing dependency is over. Your board meeting is in 4 days. They want a 3-year strategic plan, not just a tactical response. The question isn\'t how to survive the tariffs \u2014 it\'s how to build a supply chain that thrives regardless of trade policy.',
+        actions: [
+          { id: 'nearshore_pivot', label: 'Full Nearshore Pivot', desc: 'Commit to Mexico + Vietnam as your primary manufacturing base within 6 months. Mexico for the Americas market (USMCA tariff-free), Vietnam for global markets. Close your Guangdong supplier relationship for finished goods (keep them for non-tariffed raw materials only). Total transition cost: $1.5M. Long-term unit cost: 12% above pre-tariff China, but tariff-proof and politically resilient.', concepts: ['Reshoring & Nearshoring', 'Supply Chain Strategy'],
+            effects: { supplierACap: 20, supplierBCap: 60, costMult: 1.12, riskReduction: true } },
+          { id: 'us_manufacturing', label: 'US Manufacturing Investment', desc: 'Announce a $3M investment in US-based component manufacturing and assembly. Partner with a Texas contract manufacturer for PCB assembly and final product integration. Timeline: 6 months to production. \'Designed and Built in USA\' becomes a brand differentiator. Unit cost 25% higher than Southeast Asia, but zero tariff exposure, 2-day delivery to DCs, and powerful marketing story. Congressional reps are offering manufacturing tax incentives.', concepts: ['Reshoring & Nearshoring', 'Supply Chain Strategy'],
+            effects: { factoryCap: 90, cost: 30000, costMult: 1.2, riskReduction: true } },
+          { id: 'ftz_strategy', label: 'Foreign Trade Zone Strategy', desc: 'Establish a Foreign Trade Zone (FTZ) at your West Coast DC. Under FTZ rules, you can import Chinese components at reduced duty rates, store them indefinitely without paying tariffs, and re-export finished goods to non-US markets completely tariff-free. For your domestic sales, you pay tariffs only on the components\' value, not the finished product value. Reduces effective tariff burden by ~40% on goods that pass through the FTZ.', concepts: ['International Trade', 'Regulatory Compliance', 'Landed Cost Analysis'],
+            effects: { supplierACap: 55, costMult: 1.3, cost: 20000, effectDuration: 15 } }
         ]
       }
     ]
@@ -1841,19 +2045,7 @@ function showDebrief() {
 // ═══════════════════════════════════════════════════════════════
 // THEME
 // ═══════════════════════════════════════════════════════════════
-var btnTheme = document.getElementById('btnTheme');
-var themeLabel = document.getElementById('themeLabel');
-var savedTheme = localStorage.getItem('scm-tree-theme');
-if (savedTheme === 'light') {
-  document.body.classList.replace('dark', 'light');
-  themeLabel.textContent = 'Dark';
-}
-btnTheme.addEventListener('click', function() {
-  var isLight = document.body.classList.contains('light');
-  document.body.classList.replace(isLight ? 'light' : 'dark', isLight ? 'dark' : 'light');
-  themeLabel.textContent = isLight ? 'Light' : 'Dark';
-  localStorage.setItem('scm-tree-theme', isLight ? 'dark' : 'light');
-});
+initThemeToggle();
 
 // ═══════════════════════════════════════════════════════════════
 // INIT

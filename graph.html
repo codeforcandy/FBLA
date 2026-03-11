@@ -329,10 +329,16 @@ body::before {
   .detail-panel { width: 100%; }
 }
 @media (max-width: 768px) {
-  .header { padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
+  .header { padding: 10px 12px; gap: 6px; flex-wrap: wrap; }
   .header-title { font-size: 14px; }
   .search-wrap { flex: 1 1 100%; order: 10; }
-  .legend { gap: 6px; padding: 8px 14px; }
+  .header-sep { display: none; }
+  .header-actions { gap: 4px; }
+  .btn { padding: 7px 8px; font-size: 0; gap: 0; }
+  .btn svg { width: 16px; height: 16px; }
+  .legend { gap: 6px; padding: 8px 14px; font-size: 9px; bottom: 12px; max-width: 95vw; flex-wrap: wrap; justify-content: center; }
+  .legend-row { gap: 8px; }
+  .zoom-controls { bottom: 12px; left: 12px; }
 }
 
 /* ── Scrollbar ── */
@@ -728,6 +734,86 @@ body.quiz-mode .zoom-controls { left: 324px; }
   body.quiz-mode .graph-container { left: 0; }
   body.quiz-mode .zoom-controls { left: 24px; }
 }
+@media (max-width: 768px) {
+  /* Quiz panel: full-screen overlay on mobile */
+  .quiz-panel {
+    width: 100%; height: calc(100vh - 56px);
+    z-index: 95;
+    padding: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+  body.quiz-mode .legend { display: none; }
+  body.quiz-mode .zoom-controls { display: none; }
+
+  /* Larger touch targets for quiz options */
+  .quiz-option {
+    padding: 14px 16px;
+    font-size: 14px;
+    min-height: 48px;
+  }
+  .quiz-option .opt-key {
+    width: 28px; height: 28px;
+    font-size: 13px;
+  }
+
+  /* Quiz buttons: bigger tap areas */
+  .quiz-start-btn {
+    padding: 14px;
+    font-size: 16px;
+    min-height: 48px;
+  }
+  .quiz-nav-btn {
+    padding: 12px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+  .quiz-seg-btn {
+    padding: 10px 0;
+    font-size: 13px;
+    min-height: 44px;
+  }
+
+  /* Quiz question text: more readable */
+  .quiz-question-text {
+    font-size: 16px;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  /* Explanation box */
+  .quiz-explanation {
+    font-size: 13px;
+    padding: 14px;
+  }
+
+  /* Results screen */
+  .quiz-stats-row { flex-wrap: wrap; }
+  .quiz-stat-card { flex: 1 1 calc(50% - 4px); min-width: 0; }
+  .quiz-score-big { font-size: 32px; }
+  .quiz-results-actions { gap: 10px; }
+  .quiz-results-actions .quiz-nav-btn { min-height: 48px; font-size: 14px; }
+
+  /* Slider: bigger thumb for touch */
+  .quiz-count-slider::-webkit-slider-thumb {
+    width: 22px; height: 22px;
+  }
+  .quiz-count-slider { height: 6px; }
+
+  /* Toggle switch: bigger for touch */
+  .quiz-toggle-switch { width: 44px; height: 24px; }
+  .quiz-toggle-knob { width: 20px; height: 20px; }
+  .quiz-toggle-switch input:checked ~ .quiz-toggle-knob { transform: translateX(20px); }
+  .quiz-timed-toggle { font-size: 13px; padding: 4px 0; }
+
+  /* View graph button */
+  .quiz-view-graph-btn { padding: 10px; font-size: 12px; min-height: 40px; }
+
+  /* Select all/none buttons */
+  .quiz-select-actions button { padding: 8px; font-size: 12px; min-height: 36px; }
+
+  /* Section checkboxes: bigger tap area */
+  .quiz-section-item { padding: 8px 0; font-size: 13px; }
+}
 </style>
 </head>
 <body class="dark">
@@ -913,6 +999,7 @@ body.quiz-mode .zoom-controls { left: 324px; }
 </div>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="theme.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════
 // DATA
@@ -2154,21 +2241,7 @@ legendEl.appendChild(row2);
 // THEME
 // ═══════════════════════════════════════════════════════════════
 
-const btnTheme = document.getElementById('btnTheme');
-const themeLabel = document.getElementById('themeLabel');
-
-const savedTheme = localStorage.getItem('scm-tree-theme');
-if (savedTheme === 'light') {
-  document.body.classList.replace('dark', 'light');
-  themeLabel.textContent = 'Dark';
-}
-
-btnTheme.addEventListener('click', () => {
-  const isLight = document.body.classList.contains('light');
-  document.body.classList.replace(isLight ? 'light' : 'dark', isLight ? 'dark' : 'light');
-  themeLabel.textContent = isLight ? 'Light' : 'Dark';
-  localStorage.setItem('scm-tree-theme', isLight ? 'dark' : 'light');
-});
+initThemeToggle();
 
 // ═══════════════════════════════════════════════════════════════
 // INITIAL FIT
